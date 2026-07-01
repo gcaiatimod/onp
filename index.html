@@ -165,7 +165,7 @@
                                         <div class="m-b-2">
                                             <label for="category-select" class="fw-bold" style="font-size:14px;">Categoría</label>
                                             <select id="category-select" class="form-control" onchange="setCategoria(this.value)">
-                                                <option value="">Seleccioná una categoría...</option>
+                                                <option value="__all__">Todas las categorías</option>
                                             </select>
                                         </div>
                                         <div id="subcategorias-container" class="row"></div>
@@ -318,7 +318,11 @@
             if (val === "__all__") {
                 activeSubcategory = "Todo";
                 renderChips();
-                showAllGroupResults();
+                if (currentGroupHrefs && currentGroupHrefs.length) {
+                    showAllGroupResults();
+                } else {
+                    showCategoryResults(activeCategory);
+                }
                 return;
             }
             const opt = sel.options[sel.selectedIndex];
@@ -645,6 +649,7 @@
             if (!cat || !cat.children || !cat.children.length) {
                 title.textContent = activeCategory || "Presupuestos Nacionales";
                 container.innerHTML = `<div class="col-xs-12"><p class="text-muted">Sin subcategorías</p></div>`;
+                activeSubcategory = "";
                 return;
             }
 
@@ -675,7 +680,7 @@
                 // Flat or mixed: single select with all options
                 let html = `<div class="col-xs-12 col-md-12">
                     <select class="form-control" onchange="onSubcategorySelect(this)">
-                        <option value="">Seleccionar</option>`;
+                        <option value="__all__">Todo</option>`;
                 flat.forEach(function(ch) {
                     html += `<option value="${escapeAttr(ch.href)}">${escapeHtml(ch.label)}</option>`;
                 });
@@ -904,13 +909,13 @@
 
         function setCategoria(label) {
             if (!label) return false;
-            activeSubcategory = "";
             activeCategory = label;
             buildMenu();
 
             const subcatContainer = document.getElementById("subcategorias-container");
 
             if (label === "__all__") {
+                activeSubcategory = "";
                 subcatContainer.style.display = "none";
                 document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
                 renderChips();
@@ -918,6 +923,7 @@
                 return false;
             }
 
+            activeSubcategory = "Todo";
             subcatContainer.style.display = "";
             renderSubcategorias();
             renderChips();
