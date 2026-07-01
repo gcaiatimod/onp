@@ -601,9 +601,17 @@
         function onYearChange() {
             activeYear = document.getElementById("filter-anio").value;
             activeSubcategory = "";
+            var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+
+            if (activeCategory === "__all__") {
+                document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
+                renderChips();
+                if (q) { showGlobalResults(q); } else { showAllCategoriesResults(); }
+                return;
+            }
+
             renderSubcategorias();
             renderChips();
-            var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
             if (q) {
                 showGlobalResults(q);
             } else {
@@ -624,11 +632,13 @@
             const sel = document.getElementById("category-select");
             if (!sel || !menuData.length) return;
 
-            sel.innerHTML = `<option value="">Seleccioná una categoría...</option>` +
+            sel.innerHTML = `<option value="">Seleccioná una categoría...</option>
+                <option value="__all__">Todas las categorías</option>` +
                 menuData.map(cat => {
-                    const isActive = activeCategory === cat.label;
-                    return `<option value="${escapeAttr(cat.label)}" ${isActive ? "selected" : ""}>${escapeHtml(cat.label)}</option>`;
+                    return `<option value="${escapeAttr(cat.label)}">${escapeHtml(cat.label)}</option>`;
                 }).join("");
+
+            sel.value = activeCategory || "";
         }
 
         function renderSubcategorias() {
@@ -745,6 +755,10 @@
         function filterSubcategorias(q) {
             const container = document.getElementById("subcategorias-container");
             if (!container) return;
+            if (activeCategory === "__all__") {
+                container.style.display = "none";
+                return;
+            }
             container.style.display = q ? "none" : "";
         }
 
@@ -770,8 +784,9 @@
                 </span>`);
             }
             if (activeCategory) {
+                var catLabel = activeCategory === "__all__" ? "Todas las categorías" : activeCategory;
                 chips.push(`<span class="filter-chip" role="listitem">
-                    ${escapeHtml(activeCategory)}
+                    ${escapeHtml(catLabel)}
                     <button onclick="removeCategoria()" aria-label="Quitar filtro">&times;</button>
                 </span>`);
             }
@@ -860,11 +875,54 @@
             panel.style.display = "block";
         }
 
+        function showAllCategoriesResults() {
+            var allHrefs = [];
+            menuData.forEach(function(cat) {
+                if (cat.children) {
+                    cat.children.forEach(function(ch) {
+                        if (ch.children) {
+                            ch.children.forEach(function(sub) { allHrefs.push(sub.href); });
+                        } else if (ch.href) {
+                            allHrefs.push(ch.href);
+                        }
+                    });
+                }
+            });
+
+            var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+            var all = [];
+            allHrefs.forEach(function(href) {
+                (SIMULATED_RESULTS[href] || []).forEach(function(it) {
+                    if (q && !it.title.toLowerCase().includes(q)) return;
+                    if (activeYear && String(it.year) !== activeYear) return;
+                    all.push(it);
+                });
+            });
+
+            activeResultsHref = "";
+            cachedResults = all;
+            currentPage = 1;
+            renderResultsPage();
+            document.getElementById("results-panel").style.display = "block";
+        }
+
         function setCategoria(label) {
             if (!label) return false;
             activeSubcategory = "";
             activeCategory = label;
             buildMenu();
+
+            const subcatContainer = document.getElementById("subcategorias-container");
+
+            if (label === "__all__") {
+                subcatContainer.style.display = "none";
+                document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
+                renderChips();
+                showAllCategoriesResults();
+                return false;
+            }
+
+            subcatContainer.style.display = "";
             renderSubcategorias();
             renderChips();
             showCategoryResults(label);
@@ -979,6 +1037,10 @@
             if (q) {
                 filterSubcategorias(q);
                 showGlobalResults(q);
+            } else if (activeCategory === "__all__") {
+                filterSubcategorias("");
+                document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
+                showAllCategoriesResults();
             } else if (activeResultsHref) {
                 filterSubcategorias("");
                 renderSubcategorias();
