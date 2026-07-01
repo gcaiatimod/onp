@@ -652,14 +652,14 @@
 
             if (grouped.length && flat.length === 0) {
                 // Cascading: show parent groups first, then child options
-                let html = `<div class="col-md-6 col-xs-12 m-b-1">
+                let html = `<div class="col-md-12 col-xs-12 m-b-1">
                     <select class="form-control" id="parent-select" onchange="onParentSelectChange(this)">
                         <option value="">Seleccioná una categoría...</option>`;
                 grouped.forEach(function(ch) {
                     html += `<option value="${escapeAttr(ch.href || ch.label)}">${escapeHtml(ch.label)}</option>`;
                 });
                 html += `</select></div>
-                    <div class="col-md-6 col-xs-12 m-b-1" id="child-select-container" style="display:none;">
+                    <div class="col-md-12 col-xs-12 m-b-1" id="child-select-container" style="display:none;">
                         <select class="form-control" id="child-select" onchange="onSubcategorySelect(this)">
                             <option value="">Seleccioná una opción...</option>
                         </select>
@@ -667,7 +667,7 @@
                 container.innerHTML = html;
             } else {
                 // Flat or mixed: single select with all options
-                let html = `<div class="col-xs-12 col-md-6">
+                let html = `<div class="col-xs-12 col-md-12">
                     <select class="form-control" onchange="onSubcategorySelect(this)">
                         <option value="">Seleccionar</option>`;
                 flat.forEach(function(ch) {
