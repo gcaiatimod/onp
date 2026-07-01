@@ -316,7 +316,7 @@
             const val = sel.value;
             if (!val) { hideResultsPanel(); return; }
             if (val === "__all__") {
-                activeSubcategory = "Todo";
+                activeSubcategory = "Todas las categorías";
                 renderChips();
                 if (currentGroupHrefs && currentGroupHrefs.length) {
                     showAllGroupResults();
@@ -665,14 +665,14 @@
                 // Cascading: show parent groups first, then child options
                 let html = `<div class="col-md-12 col-xs-12 m-b-1">
                     <select class="form-control" id="parent-select" onchange="onParentSelectChange(this)">
-                        <option value="__all__">Todo</option>`;
+                        <option value="__all__">Todas las categorías</option>`;
                 grouped.forEach(function(ch) {
                     html += `<option value="${escapeAttr(ch.href || ch.label)}">${escapeHtml(ch.label)}</option>`;
                 });
                 html += `</select></div>
                     <div class="col-md-12 col-xs-12 m-b-1" id="child-select-container" style="display:none;">
                         <select class="form-control" id="child-select" onchange="onSubcategorySelect(this)">
-                            <option value="__all__">Todo</option>
+                            <option value="__all__">Todas las categorías</option>
                         </select>
                     </div>`;
                 container.innerHTML = html;
@@ -680,7 +680,7 @@
                 // Flat or mixed: single select with all options
                 let html = `<div class="col-xs-12 col-md-12">
                     <select class="form-control" onchange="onSubcategorySelect(this)">
-                        <option value="__all__">Todo</option>`;
+                        <option value="__all__">Todas las categorías</option>`;
                 flat.forEach(function(ch) {
                     html += `<option value="${escapeAttr(ch.href)}">${escapeHtml(ch.label)}</option>`;
                 });
@@ -709,7 +709,7 @@
 
             if (val === "__all__") {
                 childContainer.style.display = "none";
-                activeSubcategory = "Todo";
+                activeSubcategory = "Todas las categorías";
                 renderChips();
                 showCategoryResults(activeCategory);
                 return;
@@ -724,7 +724,7 @@
                     currentGroupHrefs.push(child.href);
                 }
                 childSelect.innerHTML =
-                    `<option value="__all__">Todo</option>` +
+                    `<option value="__all__">Todas las categorías</option>` +
                     child.children.filter(function(sub) {
                         return sub.label !== child.label;
                     }).map(function(sub) {
@@ -732,7 +732,7 @@
                     }).join("");
                 childSelect.value = "__all__";
                 childContainer.style.display = "";
-                activeSubcategory = "Todo";
+                activeSubcategory = "Todas las categorías";
                 renderChips();
                 showAllGroupResults();
             } else if (child && child.href) {
@@ -931,7 +931,7 @@
                 return false;
             }
 
-            activeSubcategory = "Todo";
+            activeSubcategory = "Todas las categorías";
             subcatContainer.style.display = "";
             renderSubcategorias();
             renderChips();
