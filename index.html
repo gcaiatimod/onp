@@ -592,10 +592,7 @@
                 sel.value = "2026";
                 activeYear = "2026";
             }
-            buildMenu();
-            if (menuData.length) {
-                setCategoria(menuData[0].label);
-            }
+            setCategoria("__all__");
         }
 
         function onYearChange() {
@@ -814,7 +811,7 @@
 
         function removeCategoria() {
             activeSubcategory = "";
-            if (menuData.length) setCategoria(menuData[0].label);
+            setCategoria("__all__");
         }
 
         function removeYear() {
@@ -1071,7 +1068,7 @@
             activeSubcategory = "";
             renderChips();
             closeMobileFilters();
-            if (menuData.length) setCategoria(menuData[0].label);
+            setCategoria("__all__");
         }
 
         init();
