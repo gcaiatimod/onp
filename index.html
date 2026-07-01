@@ -629,8 +629,7 @@
             const sel = document.getElementById("category-select");
             if (!sel || !menuData.length) return;
 
-            sel.innerHTML = `<option value="">Seleccioná una categoría...</option>
-                <option value="__all__">Todas las categorías</option>` +
+            sel.innerHTML = `<option value="__all__">Todas las categorías</option>` +
                 menuData.map(cat => {
                     return `<option value="${escapeAttr(cat.label)}">${escapeHtml(cat.label)}</option>`;
                 }).join("");
