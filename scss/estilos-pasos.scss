@@ -1,0 +1,175 @@
+/* ============================================================
+   IMPORTS — Solo poncho/modules/
+   ============================================================ */
+@import "poncho/modules/variables";
+
+/* ============================================================
+   SCOPE PRINCIPAL
+   ============================================================ */
+.presupuestos-nacionales {
+
+  /* ----------------------------------------------------------
+     Select de año
+     ---------------------------------------------------------- */
+  #filter-anio {
+    color: $brand-arg-negro;
+    background: $white;
+  }
+
+  /* ----------------------------------------------------------
+     Chips de filtros activos
+     ---------------------------------------------------------- */
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: $brand-arg-info-lighter;
+    color: $brand-arg-azul;
+    border-radius: 100px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: $fw-semibold;
+
+    button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: $brand-arg-gris-intermedio;
+      font-size: 14px;
+      line-height: 1;
+    }
+  }
+
+  /* ----------------------------------------------------------
+     Navegación libro / menú lateral
+     ---------------------------------------------------------- */
+  .book-navigation.details-info {
+    .page-sidebar.menu-xs {
+      .nav-pills.nav-stacked {
+        > li > a {
+          display: block;
+          color: $brand-arg-azul;
+          font-size: 14px;
+          padding: 10px 15px;
+          border-radius: 4px;
+          text-decoration: none;
+          transition: background 0.2s ease;
+
+          &:hover {
+            background: $brand-arg-primary-light;
+          }
+        }
+
+        > li.active > a,
+        > li.active > a:hover,
+        > li.active > a:focus {
+          background: transparent;
+          color: $brand-arg-azul;
+          font-weight: $fw-bold;
+        }
+      }
+    }
+  }
+
+  /* ----------------------------------------------------------
+     Submenú
+     ---------------------------------------------------------- */
+  .sidebar-submenu {
+    padding-left: 16px;
+    list-style: none;
+
+    > li > a {
+      display: block;
+      color: $brand-arg-azul;
+      font-size: 13px;
+      padding: 6px 15px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: $brand-arg-primary-light;
+      }
+    }
+
+    > li.active > a,
+    > li.active > a:hover,
+    > li.active > a:focus {
+      background: transparent;
+      color: $brand-arg-azul;
+      font-weight: $fw-bold;
+    }
+  }
+
+  /* ----------------------------------------------------------
+     Select de subcategoría (mismo estilo que filter-anio)
+     ---------------------------------------------------------- */
+  #subcategorias-container select.form-control {
+    color: $brand-arg-negro;
+    background: $white;
+  }
+
+  /* ----------------------------------------------------------
+     Tarjetas de subcategorías
+     ---------------------------------------------------------- */
+  .subcat-card {
+    display: block;
+    text-decoration: none;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+  }
+
+  /* ----------------------------------------------------------
+     Resultados del panel
+     ---------------------------------------------------------- */
+  #results-panel {
+    margin-top: 16px;
+  }
+
+  .result-item {
+    .result-format {
+      font-size: 12px;
+      white-space: nowrap;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    h3 a {
+      color: $brand-arg-azul;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  #results-list {
+    .border-bottom {
+      border-bottom: 1px solid $gray-light;
+    }
+  }
+
+  .pagination-wrap {
+    button {
+      font-size: 13px;
+    }
+  }
+}
