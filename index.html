@@ -362,6 +362,7 @@
         }
 
         function renderResultsPage() {
+            cachedResults.sort(function(a, b) { return (b.year || 0) - (a.year || 0); });
             var list = document.getElementById("results-list");
             if (cachedResults.length === 0) {
                 list.innerHTML = '<div class="p-x-2 p-y-2 text-muted"><p class="margin-0">No hay resultados' +
