@@ -118,6 +118,161 @@
   }
 
   /* ----------------------------------------------------------
+     Panel de filtros (mobile modal / desktop sidebar)
+     ---------------------------------------------------------- */
+  .panel-filtros {
+    border: none;
+    box-shadow: none;
+    border-radius: 8px;
+  }
+
+  .btn-mobile-filtros-open {
+    display: none;
+  }
+
+  .filter-mobile-overlay {
+    display: none;
+  }
+
+  .filter-header-mobile,
+  .filter-footer-mobile {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .filter-mobile-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1040;
+
+      &.open { display: block; }
+    }
+
+    .panel-filtros-wrapper {
+      position: fixed;
+      top: auto;
+      bottom: -100%;
+      left: 0;
+      right: 0;
+      height: 85vh;
+      background: $white;
+      z-index: 1050;
+      transition: bottom 0.3s ease-in-out;
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      flex-direction: column;
+      // TODO: hardcode
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+
+      &.open { bottom: 0; }
+    }
+
+    .panel-filtros {
+      background-color: $white !important;
+      border-radius: 20px 20px 0 0;
+      margin-bottom: 0;
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 80px;
+    }
+
+    .filter-header-mobile {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 20px 10px;
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: $brand-arg-azul;
+      }
+
+      button {
+        background: none;
+        border: none;
+        // TODO: hardcode
+        color: #555;
+        font-size: 14px;
+        font-weight: 600;
+      }
+    }
+
+    .filter-footer-mobile {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: $white;
+      padding: 15px 20px;
+      // TODO: hardcode
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 0 0 20px 20px;
+      z-index: 1060;
+      gap: 15px;
+
+      .btn-restablecer {
+        flex: 1;
+        margin-top: 0;
+        background: $white;
+        // TODO: hardcode
+        border: 1px solid #ccc;
+        color: $brand-arg-azul;
+        border-radius: 6px;
+        font-weight: $fw-bold;
+        padding: 10px 0;
+      }
+
+      .btn-aplicar {
+        flex: 1;
+        background: $brand-arg-azul;
+        color: $white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 0;
+        font-weight: $fw-bold;
+        font-size: 14px;
+      }
+    }
+
+    .btn-mobile-filtros-open {
+      display: block;
+      width: 100%;
+      background: $white;
+      border: 1px solid $brand-arg-azul;
+      color: $brand-arg-azul;
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: $fw-semibold;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .desktop-filtros-title {
+      display: none !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .filter-header-mobile,
+    .filter-footer-mobile,
+    .btn-mobile-filtros-open,
+    .filter-mobile-overlay {
+      display: none !important;
+    }
+
+    .panel-filtros-wrapper {
+      display: block !important;
+      position: static;
+      height: auto;
+    }
+  }
+
+  /* ----------------------------------------------------------
      Tarjetas de subcategorías
      ---------------------------------------------------------- */
   .subcat-card {

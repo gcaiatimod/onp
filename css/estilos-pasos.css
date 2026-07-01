@@ -363,6 +363,9 @@ html {
      Select de subcategoría (mismo estilo que filter-anio)
      ---------------------------------------------------------- */
   /* ----------------------------------------------------------
+     Panel de filtros (mobile modal / desktop sidebar)
+     ---------------------------------------------------------- */
+  /* ----------------------------------------------------------
      Tarjetas de subcategorías
      ---------------------------------------------------------- */
   /* ----------------------------------------------------------
@@ -444,6 +447,144 @@ html {
 .presupuestos-nacionales #subcategorias-container select.form-control {
   color: #141414;
   background: #FFFFFF;
+}
+.presupuestos-nacionales .panel-filtros {
+  border: none;
+  box-shadow: none;
+  border-radius: 8px;
+}
+.presupuestos-nacionales .btn-mobile-filtros-open {
+  display: none;
+}
+.presupuestos-nacionales .filter-mobile-overlay {
+  display: none;
+}
+.presupuestos-nacionales .filter-header-mobile,
+.presupuestos-nacionales .filter-footer-mobile {
+  display: none;
+}
+@media (max-width: 767px) {
+  .presupuestos-nacionales .filter-mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+  }
+  .presupuestos-nacionales .filter-mobile-overlay.open {
+    display: block;
+  }
+  .presupuestos-nacionales .panel-filtros-wrapper {
+    position: fixed;
+    top: auto;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    height: 85vh;
+    background: #FFFFFF;
+    z-index: 1050;
+    transition: bottom 0.3s ease-in-out;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+  }
+  .presupuestos-nacionales .panel-filtros-wrapper.open {
+    bottom: 0;
+  }
+  .presupuestos-nacionales .panel-filtros {
+    background-color: #FFFFFF !important;
+    border-radius: 20px 20px 0 0;
+    margin-bottom: 0;
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 80px;
+  }
+  .presupuestos-nacionales .filter-header-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 10px;
+  }
+  .presupuestos-nacionales .filter-header-mobile h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #232D4F;
+  }
+  .presupuestos-nacionales .filter-header-mobile button {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .presupuestos-nacionales .filter-footer-mobile {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 20px 20px;
+    z-index: 1060;
+    gap: 15px;
+  }
+  .presupuestos-nacionales .filter-footer-mobile .btn-restablecer {
+    flex: 1;
+    margin-top: 0;
+    background: #FFFFFF;
+    border: 1px solid #ccc;
+    color: #232D4F;
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 10px 0;
+  }
+  .presupuestos-nacionales .filter-footer-mobile .btn-aplicar {
+    flex: 1;
+    background: #232D4F;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 0;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .presupuestos-nacionales .btn-mobile-filtros-open {
+    display: block;
+    width: 100%;
+    background: #FFFFFF;
+    border: 1px solid #232D4F;
+    color: #232D4F;
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  .presupuestos-nacionales .desktop-filtros-title {
+    display: none !important;
+  }
+}
+@media (min-width: 768px) {
+  .presupuestos-nacionales .filter-header-mobile,
+  .presupuestos-nacionales .filter-footer-mobile,
+  .presupuestos-nacionales .btn-mobile-filtros-open,
+  .presupuestos-nacionales .filter-mobile-overlay {
+    display: none !important;
+  }
+  .presupuestos-nacionales .panel-filtros-wrapper {
+    display: block !important;
+    position: static;
+    height: auto;
+  }
 }
 .presupuestos-nacionales .subcat-card {
   display: block;

@@ -140,20 +140,41 @@
 
                         <!-- Columna de filtros -->
                         <div class="col-md-3 col-xs-12">
-                            <div class="m-b-2">
-                                <label for="filter-anio" class="fw-bold" style="font-size:14px;">Año</label>
-                                <select id="filter-anio" class="form-control" onchange="onYearChange()">
-                                    <option value="">Todos</option>
-                                    <option value="2026">2026</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2024">2024</option>
-                                    <option value="2023">2023</option>
-                                </select>
-                            </div>
-                            <div id="book-navigation-185303" class="book-navigation details-info">
-                                <nav class="page-sidebar menu-xs">
-                                    <ul class="nav nav-pills nav-stacked" id="sidebar-categorias"></ul>
-                                </nav>
+                            <button class="btn-mobile-filtros-open" onclick="openMobileFilters()">
+                                <i class="fa fa-sliders"></i> Filtrar
+                            </button>
+                            <div class="filter-mobile-overlay" id="mobileOverlay" onclick="closeMobileFilters()"></div>
+                            <div class="panel-filtros-wrapper" id="mobileFilterPanel">
+                                <div class="filter-header-mobile">
+                                    <h3>Filtros</h3>
+                                    <button onclick="closeMobileFilters()">Cerrar <i class="fa fa-times"></i></button>
+                                </div>
+                                <div class="panel panel-filtros">
+                                    <div class="panel-body">
+                                        <h3 class="h4 fw-bold m-t-0 m-b-1 desktop-filtros-title">Filtros</h3>
+                                        <div class="m-b-2">
+                                            <label for="filter-anio" class="fw-bold" style="font-size:14px;">Año</label>
+                                            <select id="filter-anio" class="form-control" onchange="onYearChange()">
+                                                <option value="">Todos</option>
+                                                <option value="2026">2026</option>
+                                                <option value="2025">2025</option>
+                                                <option value="2024">2024</option>
+                                                <option value="2023">2023</option>
+                                            </select>
+                                        </div>
+                                        <div class="m-b-2">
+                                            <label for="category-select" class="fw-bold" style="font-size:14px;">Categoría</label>
+                                            <select id="category-select" class="form-control" onchange="setCategoria(this.value)">
+                                                <option value="">Seleccioná una categoría...</option>
+                                            </select>
+                                        </div>
+                                        <div id="subcategorias-container" class="row"></div>
+                                    </div>
+                                </div>
+                                <div class="filter-footer-mobile">
+                                    <button class="btn btn-default btn-restablecer" onclick="resetAllMobile()">Restablecer</button>
+                                    <button class="btn btn-aplicar" onclick="closeMobileFilters()">Aplicar</button>
+                                </div>
                             </div>
                         </div>
 
@@ -174,8 +195,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div id="subcategorias-container" class="row"></div>
-                            <div class="panel panel-default" id="results-panel" style="display:none; margin-top:16px;">
+                            <div class="panel panel-default" id="results-panel" style="display:none;">
                                 <div class="panel-body p-a-0">
                                     <div id="results-list"></div>
                                 </div>
@@ -601,15 +621,14 @@
         }
 
         function buildMenu() {
-            const ul = document.getElementById("sidebar-categorias");
-            if (!ul || !menuData.length) return;
+            const sel = document.getElementById("category-select");
+            if (!sel || !menuData.length) return;
 
-            ul.innerHTML = menuData.map(cat => {
-                const isActive = activeCategory === cat.label;
-                return `<li class="${isActive ? "active" : ""}">
-                    <a href="#" onclick="return setCategoria('${escapeAttr(cat.label)}')">${escapeHtml(cat.label)}</a>
-                </li>`;
-            }).join("");
+            sel.innerHTML = `<option value="">Seleccioná una categoría...</option>` +
+                menuData.map(cat => {
+                    const isActive = activeCategory === cat.label;
+                    return `<option value="${escapeAttr(cat.label)}" ${isActive ? "selected" : ""}>${escapeHtml(cat.label)}</option>`;
+                }).join("");
         }
 
         function renderSubcategorias() {
@@ -842,6 +861,7 @@
         }
 
         function setCategoria(label) {
+            if (!label) return false;
             activeSubcategory = "";
             activeCategory = label;
             buildMenu();
@@ -969,6 +989,28 @@
                 showCategoryResults(activeCategory);
             }
         });
+
+        /* Mobile filter modal */
+        function openMobileFilters() {
+            document.getElementById('mobileOverlay').classList.add('open');
+            document.getElementById('mobileFilterPanel').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileFilters() {
+            document.getElementById('mobileOverlay').classList.remove('open');
+            document.getElementById('mobileFilterPanel').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function resetAllMobile() {
+            document.getElementById("filter-anio").value = "2026";
+            activeYear = "2026";
+            activeSubcategory = "";
+            renderChips();
+            closeMobileFilters();
+            if (menuData.length) setCategoria(menuData[0].label);
+        }
 
         init();
     </script>
