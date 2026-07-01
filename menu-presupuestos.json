@@ -1,0 +1,64 @@
+[
+  {
+    "id": "presupuestos",
+    "label": "Presupuestos de la Administración Pública Nacional",
+    "filter": { "tipo": ["Ley de Presupuesto", "Mensajes y proyecto de ley", "Otros documentos"] },
+    "children": [
+      { "label": "2026", "filter": { "anio": ["2026"] } },
+      { "label": "2025", "filter": { "anio": ["2025"] } },
+      { "label": "2024", "filter": { "anio": ["2024"] } },
+      { "label": "Años Anteriores", "filter": { "anio": ["2023", "2022", "2021", "2020"] } }
+    ]
+  },
+  {
+    "id": "ejecucion",
+    "label": "Ejecución Presupuestaria",
+    "filter": { "subtipo": "Ejecución" },
+    "children": [
+      { "label": "Ejecución Adm. Nacional Base Devengado", "filter": { "subsubtipo": "Base Devengado" } },
+      { "label": "Cuenta AIF Sector Público Nacional Base Caja", "filter": { "subsubtipo": "Base Caja" } },
+      { "label": "Ejecución Adm. Nacional Divisas", "filter": { "subsubtipo": "Divisas" } },
+      { "label": "Boletín Fiscal", "filter": { "subsubtipo": "Boletín Fiscal" } }
+    ]
+  },
+  {
+    "id": "evaluacion",
+    "label": "Evaluación Presupuestaria",
+    "filter": { "subtipo": "Evaluación" },
+    "children": [
+      { "label": "Síntesis Ejecutiva", "filter": { "subsubtipo": "Síntesis Ejecutiva" } },
+      { "label": "Seguimiento Físico Financiero", "filter": { "subsubtipo": "Seguimiento" } },
+      { "label": "Resúmen Orientado al Ciudadano", "filter": { "subsubtipo": "Resumen" } },
+      { "label": "Inversión Pública Nacional", "filter": { "subsubtipo": "Inversión Pública" } },
+      { "label": "Cuenta de Inversión", "filter": { "subsubtipo": "Cuenta de Inversión" } }
+    ]
+  },
+  {
+    "id": "empresas",
+    "label": "Empresas Públicas, Fondos Fiduciarios y Otros Entes",
+    "filter": { "subtipo": "Empresas" },
+    "children": [
+      { "label": "Presupuestos de Empresas Públicas y Otros Entes", "filter": { "subsubtipo": "Empresas Públicas" } },
+      { "label": "Presupuestos de Fondos Fiduciarios", "filter": { "subsubtipo": "Fondos Fiduciarios" } },
+      { "label": "Ejecución Presupuestaria de los Fondos Fiduciarios", "filter": { "subsubtipo": "Fondos Fiduciarios Ejecución" } },
+      { "label": "Ejecución Presupuestaria de Empresas Públicas", "filter": { "subsubtipo": "Empresas Públicas Ejecución" } },
+      { "label": "Instructivos", "filter": { "subsubtipo": "Instructivos" } }
+    ]
+  },
+  {
+    "id": "sistema",
+    "label": "Sistema Presupuestario",
+    "filter": { "subtipo": "Sistema Presupuestario" },
+    "children": [
+      { "label": "Normativa", "filter": { "subsubtipo": "Normativa" } },
+      { "label": "Manuales", "filter": { "subsubtipo": "Manuales" } },
+      { "label": "Instructivos y Soportes de Información", "filter": { "subsubtipo": "Instructivos" } }
+    ]
+  },
+  {
+    "id": "estadisticas",
+    "label": "Series Estadísticas",
+    "filter": { "subtipo": "Series Estadísticas" },
+    "children": []
+  }
+]

@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#242C4F">
+    <title>Presupuestos Nacionales | Argentina.gob.ar</title>
+    <meta name="description"
+        content="Accedé a la descarga de los presupuestos elaborados por la Oficina Nacional de Presupuesto">
+    <link rel="icon"
+        href="https://www.argentina.gob.ar/profiles/argentinagobar/themes/argentinagobar/argentinagobar_theme/favicon.ico"
+        type="image/x-icon">
+
+    <!-- Tipografía -->
+    <link type="text/css" rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        media="all">
+    <link type="text/css" rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" media="all">
+
+    <!-- Bootstrap 3 + Poncho -->
+    <link rel="stylesheet"
+        href="https://www.argentina.gob.ar/profiles/argentinagobar/themes/contrib/poncho/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet"
+        href="https://www.argentina.gob.ar/profiles/argentinagobar/themes/contrib/poncho/css/icono-arg.css">
+    <link rel="stylesheet"
+        href="https://qa3-back.argentina.gob.ar/profiles/argentinagobar/themes/contrib/poncho/css/poncho.min.css">
+
+    <style>
+        /* Solo lo que Poncho no cubre */
+        .result-item {
+            padding: 14px 0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none !important;
+        }
+
+        .result-format {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .result-format+.result-format {
+            margin-left: 8px;
+        }
+
+        /* Panel filtros */
+        .panel-filtros {
+            border: none;
+            box-shadow: none;
+            border-radius: 8px;
+        }
+
+        .panel-filtros details summary {
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            outline: none;
+            user-select: none;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .panel-filtros details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .panel-filtros details summary::after {
+            content: "\f106";
+            font-family: FontAwesome;
+            font-size: 14px;
+            color: #333;
+            transition: transform 0.2s ease;
+        }
+
+        .panel-filtros details:not([open]) summary::after {
+            content: "\f107";
+        }
+
+        .panel-filtros .filter-body {
+            padding-bottom: 12px;
+            padding-top: 4px;
+        }
+
+        .panel-filtros .filter-checkbox-group label {
+            cursor: pointer;
+            font-size: 14px !important;
+        }
+
+        .btn-restablecer {
+            border-radius: 100px;
+        }
+
+        /* Estado de carga y vacío */
+        #loading-state,
+        #empty-state,
+        #error-state {
+            display: none;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        #loading-state.visible,
+        #empty-state.visible,
+        #error-state.visible {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e5e5;
+            border-top-color: #232D4F;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Checkboxes estilo "caja blanca" */
+        .filter-checkbox-group label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            background: #fff;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            padding: 10px 12px !important;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+            width: 100%;
+        }
+
+        .filter-checkbox-group label:hover {
+            border-color: #aaa;
+        }
+
+        .filter-checkbox-group input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            margin-top: 1px;
+            margin-left: 0 !important;
+            position: relative !important;
+            vertical-align: middle;
+            cursor: pointer;
+            border: 1px solid #b3b3b3;
+            border-radius: 3px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .filter-checkbox-group input[type="checkbox"]:checked {
+            background-color: #08335e;
+            /* Azul oscuro Poncho */
+            border-color: #08335e;
+        }
+
+        .filter-checkbox-group input[type="checkbox"]:checked::after {
+            content: "\f00c";
+            font-family: FontAwesome;
+            color: white;
+            font-size: 11px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ordenar-por-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #555;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .ordenar-por-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .btn-ordenar {
+            flex: 1;
+            padding: 10px 8px;
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            background: #fff;
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn-ordenar.active {
+            background: #08335e;
+            color: #fff;
+            border-color: #08335e;
+        }
+
+        @media (max-width: 767px) {
+            .filter-mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+            }
+
+            .filter-mobile-overlay.open {
+                display: block;
+            }
+
+            .panel-filtros-wrapper {
+                position: fixed;
+                top: auto;
+                bottom: -100%;
+                left: 0;
+                right: 0;
+                height: 85vh;
+                background: #fff;
+                z-index: 1050;
+                transition: bottom 0.3s ease-in-out;
+                border-radius: 20px 20px 0 0;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .panel-filtros-wrapper.open {
+                bottom: 0;
+            }
+
+            .panel-filtros {
+                background-color: #fff !important;
+                border-radius: 20px 20px 0 0;
+                margin-bottom: 0;
+                flex: 1;
+                overflow-y: auto;
+                padding-bottom: 80px;
+            }
+
+            .filter-header-mobile {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 20px 10px;
+            }
+
+            .filter-header-mobile h3 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: #08335e;
+            }
+
+            .filter-header-mobile button {
+                background: none;
+                border: none;
+                color: #555;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .filter-footer-mobile {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #fff;
+                padding: 15px 20px;
+                border-top: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-radius: 0 0 20px 20px;
+                z-index: 1060;
+                gap: 15px;
+            }
+
+            .filter-footer-mobile .btn-restablecer {
+                flex: 1;
+                margin-top: 0;
+                background: #fff;
+                border: 1px solid #ccc;
+                color: #08335e;
+                border-radius: 6px;
+                font-weight: 700;
+                padding: 10px 0;
+            }
+
+            .filter-footer-mobile .btn-aplicar {
+                flex: 1;
+                background: #001f3f;
+                /* Azul más oscuro según captura */
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 0;
+                font-weight: 700;
+                font-size: 14px;
+            }
+
+            .btn-mobile-filtros-open {
+                display: block;
+                width: 100%;
+                background: #fff;
+                border: 1px solid #08335e;
+                color: #08335e;
+                border-radius: 8px;
+                padding: 10px;
+                font-weight: 600;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .desktop-filtros-title,
+            .desktop-restablecer {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 768px) {
+
+            .filter-header-mobile,
+            .filter-footer-mobile,
+            .btn-mobile-filtros-open,
+            .filter-mobile-overlay {
+                display: none !important;
+            }
+
+            .panel-filtros-wrapper {
+                display: block !important;
+                position: static;
+                height: auto;
+            }
+        }
+
+        /* Chips de filtros activos */
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #E3E7ED;
+            color: #232D4F;
+            border-radius: 100px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .filter-chip button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: #555;
+            font-size: 14px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body class="html no-sidebars">
+
+    <!-- Encabezado Oficial -->
+    <header>
+        <nav class="navbar navbar-top navbar-default border-bottom-amarillo">
+            <div class="container">
+                <div>
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="https://www.argentina.gob.ar/" id="navbar-brand"
+                            aria-label="Argentina.gob.ar Presidencia de la Nación">
+                            <img src="https://www.argentina.gob.ar/profiles/argentinagobar/themes/argentinagobar/argentinagobar_theme/logo_argentina-azul.svg"
+                                alt="Argentina.gob.ar" height="50" width="254">
+                        </a>
+                        <a class="btn btn-mi-argentina btn-login visible-xs bg-miarg-azul"
+                            href="https://mi.argentina.gob.ar" title="Ingresar a Mi Argentina">
+                            <i class="icono-arg-mi-argentina text-white"></i>
+                            <span class="sr-only">Ir a Mi Argentina</span>
+                        </a>
+                        <button class="btn btn-mi-argentina btn-login visible-xs" aria-labelledby="edit-keys">
+                            <span class="fa fa-search fa-fw"></span>
+                            <span class="sr-only">Buscar</span>
+                        </button>
+                    </div>
+                    <div class="nav navbar-nav navbar-right hidden-xs">
+                        <button class="btn btn-link btn-search-reset visible-xs">
+                            <i class="fa fa-times"><span class="sr-only">Cerrar el buscador</span></i>
+                        </button>
+                        <div id="cd-login">
+                            <a href="https://mi.argentina.gob.ar/" id="btn-mi-argentina"
+                                class="btn hidden-xs p-l-1 btn-login bg-miarg-azul"
+                                aria-label="Ingresar a Mi Argentina">
+                                <i class="fa-3x fa icono-arg-mi-argentina-extended text-white p-t-0">
+                                    <span class="sr-only">Mi Argentina</span>
+                                </i>
+                            </a>
+                        </div>
+                        <div class="pull-left">
+                            <div class="input-group">
+                                <label class="sr-only" for="search-site">Buscar en el sitio</label>
+                                <input placeholder="Buscá en el sitio" id="search-site"
+                                    class="input-search form-control" type="text">
+                                <span class="input-group-btn">
+                                    <button class="bg-white btn btn-primary" aria-label="Buscar" type="button">
+                                        <i class="fa fa-search text-primary"></i>
+                                        <span class="sr-only">Buscar en el sitio</span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+
+        <!-- Jumbotron / Hero -->
+        <section class="jumbotron align-mid">
+            <div class="jumbotron_body bg-primary">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 col-xs-12">
+                            <h1 class="margin-bottom-1">Presupuestos Nacionales</h1>
+                            <p class="lead">Accedé a la descarga de los presupuestos elaborados por la Oficina Nacional
+                                de Presupuesto</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="container margin-bottom-4">
+            <div class="region region-content">
+                <div id="block-system-main" class="block block-system clearfix">
+
+                    <!-- Migas de pan -->
+                    <div class="row m-t-2">
+                        <div class="col-md-12">
+                            <ol class="breadcrumb pull-left device-breadcrumb" role="list" aria-label="Migas de pan">
+                                <li><a href="https://www.argentina.gob.ar/">Inicio</a></li>
+                                <li><a href="#">Ministerio de Economía</a></li>
+                                <li class="active">Oficina Nacional de Presupuesto</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Buscador de presupuestos -->
+                    <div class="row m-t-2 m-b-3">
+                        <div class="col-md-12">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-addon bg-white">
+                                    <i class="fa fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="Buscar por palabra clave"
+                                    id="search-presupuesto" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chips de filtros activos -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="filter-chips" id="filter-chips" role="list" aria-label="Filtros activos"></div>
+                        </div>
+                    </div>
+
+                    <!-- Contador y contenido principal -->
+                    <div class="row">
+
+                        <!-- Columna de filtros -->
+                        <div class="col-md-3 col-xs-12">
+                            <button class="btn-mobile-filtros-open" onclick="openMobileFilters()">
+                                <i class="fa fa-sliders"></i> Filtrar y Ordenar
+                            </button>
+                            <div class="filter-mobile-overlay" id="mobileOverlay" onclick="closeMobileFilters()"></div>
+                            <div class="panel-filtros-wrapper" id="mobileFilterPanel">
+                                <div class="filter-header-mobile">
+                                    <h3>Filtrar y Ordenar</h3>
+                                    <button onclick="closeMobileFilters()">Cerrar <i class="fa fa-times"></i></button>
+                                </div>
+                                <div class="panel panel-filtros bg-arg-gris-niebla">
+                                    <div class="panel-body">
+
+                                        <h3 class="h4 fw-bold m-t-0 m-b-1 desktop-filtros-title">Filtros</h3>
+
+                                        <div class="ordenar-por-title">ORDENAR POR</div>
+                                        <div class="ordenar-por-container">
+                                            <button class="btn-ordenar active" onclick="setSort(this)">Más
+                                                reciente</button>
+                                            <button class="btn-ordenar" onclick="setSort(this)">Monto: Mayor</button>
+                                        </div>
+
+                                        <!-- Filtro Año -->
+                                        <details open class="border-bottom" id="filter-anio-details">
+                                            <summary class="filter-section-title fw-semibold">Año Fiscal</summary>
+                                            <div class="filter-body filter-checkbox-group" id="filter-anio">
+                                                <!-- generado dinámicamente -->
+                                            </div>
+                                        </details>
+
+                                        <!-- Filtro Tipo (Administración) -->
+                                        <details class="border-bottom" id="filter-tipo-details">
+                                            <summary class="filter-section-title fw-semibold">Administración</summary>
+                                            <div class="filter-body filter-checkbox-group" id="filter-tipo">
+                                                <!-- generado dinámicamente -->
+                                            </div>
+                                        </details>
+
+                                        <!-- Filtro Subtipo -->
+                                        <details class="border-bottom" id="filter-subtipo-details">
+                                            <summary class="filter-section-title fw-semibold">Subtipo</summary>
+                                            <div class="filter-body filter-checkbox-group" id="filter-subtipo">
+                                                <!-- generado dinámicamente -->
+                                            </div>
+                                        </details>
+
+                                        <!-- Filtro Subsubtipo (Estado) -->
+                                        <details open class="border-bottom" id="filter-subsubtipo-details">
+                                            <summary class="filter-section-title fw-semibold">Estado</summary>
+                                            <div class="filter-body filter-checkbox-group" id="filter-subsubtipo">
+                                                <!-- generado dinámicamente -->
+                                            </div>
+                                        </details>
+
+                                        <button
+                                            class="btn btn-default btn-restablecer m-t-2 fw-semibold desktop-restablecer"
+                                            id="btn-reset">
+                                            Restablecer
+                                        </button>
+
+                                    </div>
+                                </div>
+                                <div class="filter-footer-mobile">
+                                    <button class="btn btn-default btn-restablecer"
+                                        onclick="resetAllMobile()">Restablecer</button>
+                                    <button class="btn btn-aplicar" onclick="closeMobileFilters()">Aplicar
+                                        filtros</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna de resultados -->
+                        <div class="col-md-9 col-xs-12">
+
+                            <div class="row margin-bottom-2 align-items-center">
+                                <div class="col-xs-8">
+                                    <h2 class="h4 margin-bottom-0" id="results-count">
+                                        <strong>Cargando resultados...</strong>
+                                    </h2>
+                                </div>
+                                <div class="col-xs-4 text-right">
+                                    <select id="page-size-selector" class="form-control"
+                                        style="display:inline-block; width:auto; padding:4px 8px; height:auto;"
+                                        onchange="changePageSize(this.value)">
+                                        <option value="10" selected>10 por página</option>
+                                        <option value="25">25 por página</option>
+                                        <option value="50">50 por página</option>
+                                        <option value="todos">Todos</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Estado de carga -->
+                            <div id="loading-state" class="visible">
+                                <div class="spinner"></div>
+                                <p class="text-muted">Cargando datos...</p>
+                            </div>
+
+                            <!-- Estado vacío -->
+                            <div id="empty-state">
+                                <i class="fa fa-search fa-3x text-muted m-b-1"></i>
+                                <p class="text-muted">No se encontraron resultados con los filtros aplicados.</p>
+                                <button class="btn btn-default btn-restablecer" onclick="resetAll()">Limpiar
+                                    filtros</button>
+                            </div>
+
+                            <!-- Estado error -->
+                            <div id="error-state">
+                                <i class="fa fa-exclamation-triangle fa-3x text-warning m-b-1"></i>
+                                <p class="text-muted" id="error-msg">Error al cargar los datos.</p>
+                            </div>
+
+                            <!-- Lista de resultados -->
+                            <div class="panel panel-default" id="results-panel" style="display:none;">
+                                <div class="panel-body p-a-0">
+                                    <div id="results-list"></div>
+                                </div>
+                            </div>
+
+                            <!-- Paginación -->
+                            <nav aria-label="Paginación" class="m-t-2" id="pagination-nav" style="display:none;">
+                                <ul class="pagination" id="pagination-list"></ul>
+                            </nav>
+
+                        </div>
+                    </div>
+                    <!-- fin row principal -->
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de página Oficial -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-sm-12">
+                    <section class="block block-menu clearfix">
+                        <h2 class="block-title h3 section-title">Trámites</h2>
+                        <ul class="menu nav">
+                            <li class="first leaf"><a href="https://www.argentina.gob.ar/turnos">Turnos</a></li>
+                            <li class="leaf"><a href="https://www.argentina.gob.ar/tad">Trámites a distancia</a></li>
+                            <li class="last leaf"><a
+                                    href="https://www.argentina.gob.ar/miargentina/mesadeayuda">Atención a la
+                                    ciudadanía</a></li>
+                        </ul>
+                    </section>
+                </div>
+                <div class="col-md-4 col-sm-12">
+                    <section class="block block-menu clearfix">
+                        <h2 class="block-title h3 section-title">Acerca de la República Argentina</h2>
+                        <ul class="menu nav">
+                            <li class="first leaf"><a href="https://www.argentina.gob.ar/pais">Nuestro país</a></li>
+                            <li class="leaf"><a href="https://www.argentina.gob.ar/normativa">Leyes argentinas</a></li>
+                            <li class="leaf"><a href="https://www.argentina.gob.ar/organismos">Organismos</a></li>
+                            <li class="last leaf"><a
+                                    href="https://www.argentina.gob.ar/desregulacion/mapa-del-estado">Mapa del
+                                    Estado</a></li>
+                        </ul>
+                    </section>
+                </div>
+                <div class="col-md-4 col-sm-12">
+                    <section class="block block-menu clearfix">
+                        <h2 class="block-title h3 section-title">Acerca de Argentina.gob.ar</h2>
+                        <ul class="menu nav">
+                            <li class="first leaf"><a href="https://www.argentina.gob.ar/acerca">Acerca de este
+                                    sitio</a></li>
+                            <li class="leaf"><a href="https://www.argentina.gob.ar/terminos-y-condiciones">Términos y
+                                    condiciones</a></li>
+                            <li class="last leaf"><a href="https://www.argentina.gob.ar/sugerencias">Sugerencias</a>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid border-top-amarillo">
+            <div class="row sub-footer">
+                <div class="container">
+                    <div class="col-sm-6 m-y-1 p-x-0"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ============================================================
+           CONFIGURACIÓN
+           ============================================================ */
+
+        const SHEET_ID = "1dNcfc4d6_dkmJz8gtfnbYUpsqfD4Vwymps958a78BBA";
+        const SHEET_GID = "0";
+        const DATA_SOURCE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+        const COL = { anio: 0, tipo: 1, subtipo: 2, subsubtipo: 3, titulo: 4, pdf: 5, rtf: 6, xlsx: 7 };
+
+        let ITEMS_POR_PAGINA = 10;
+
+        /* ============================================================
+           ESTADO DE LA APP
+           ============================================================ */
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        let activeFilters = { anio: [], tipo: [], subtipo: [], subsubtipo: [] };
+        let searchQuery = "";
+
+        /* ============================================================
+           CARGA DE DATOS
+           ============================================================ */
+        async function loadData() {
+            showState("loading");
+            try {
+                const response = await fetch(DATA_SOURCE);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const text = await response.text();
+                const rows = parseCSVLines(text);
+
+                // Saltamos las 2 primeras filas de encabezado del CSV
+                const data = rows.slice(2).map(row => ({
+                    anio: (row[COL.anio] || "").trim(),
+                    tipo: (row[COL.tipo] || "").trim(),
+                    subtipo: (row[COL.subtipo] || "").trim(),
+                    subsubtipo: (row[COL.subsubtipo] || "").trim(),
+                    titulo: (row[COL.titulo] || "").trim(),
+                    url_pdf: cleanUrl(row[COL.pdf]),
+                    url_rtf: cleanUrl(row[COL.rtf]),
+                    url_xls: cleanUrl(row[COL.xlsx]),
+                    organismo: "Ministerio de Economía"
+                })).filter(r => r.titulo);
+
+                processData(data);
+            } catch (err) {
+                console.error("[presupuestos] Error al cargar datos:", err);
+                document.getElementById("error-msg").textContent = "No se pudieron cargar los datos. Revisá tu conexión.";
+                showState("error");
+            }
+        }
+
+        function parseCSVLines(text) {
+            const rows = [];
+            const lines = text.split(/\r?\n/);
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                rows.push(splitCSVRow(line));
+            }
+            return rows;
+        }
+
+        function splitCSVRow(row) {
+            const result = [];
+            let current = "", inQuotes = false;
+            for (let i = 0; i < row.length; i++) {
+                const ch = row[i];
+                if (ch === '"') {
+                    if (inQuotes && row[i + 1] === '"') { current += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } else if (ch === ',' && !inQuotes) {
+                    result.push(current); current = "";
+                } else {
+                    current += ch;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        function cleanUrl(raw) {
+            if (!raw) return "";
+            raw = raw.trim();
+            if (!raw) return "";
+            const mdMatch = raw.match(/\(blank:#(https?:\/\/[^\s)]+)\)/);
+            if (mdMatch) return mdMatch[1];
+            if (/^https?:\/\//.test(raw)) return raw;
+            return "";
+        }
+
+        /* ============================================================
+           PROCESAMIENTO Y RENDER
+           ============================================================ */
+        function processData(data) {
+            allData = data;
+            buildFilters(data);
+            applyFiltersAndRender();
+        }
+
+        function buildFilters(data) {
+            const fields = ["anio", "tipo", "subtipo", "subsubtipo"];
+            fields.forEach(field => {
+                const values = [...new Set(data.map(d => d[field] || "").filter(Boolean))].sort();
+                const container = document.getElementById(`filter-${field}`);
+                if (!container) return;
+
+                if (values.length === 0) {
+                    container.innerHTML = '<p class="text-muted small">Sin opciones.</p>';
+                    return;
+                }
+
+                container.innerHTML = values.map(val => `
+            <div class="checkbox m-b-05">
+                <label class="fw-normal">
+                    <input type="checkbox" data-field="${field}" value="${escapeAttr(val)}"
+                           onchange="onFilterChange()"> ${escapeHtml(val)}
+                </label>
+            </div>
+        `).join("");
+            });
+        }
+
+        function onFilterChange() {
+            const fields = ["anio", "tipo", "subtipo", "subsubtipo"];
+            fields.forEach(field => {
+                const checked = [...document.querySelectorAll(`input[data-field="${field}"]:checked`)]
+                    .map(el => el.value);
+                activeFilters[field] = checked;
+            });
+            currentPage = 1;
+            applyFiltersAndRender();
+            renderChips();
+        }
+
+        function applyFiltersAndRender() {
+            const q = searchQuery.toLowerCase();
+            filteredData = allData.filter(item => {
+                // Búsqueda de texto
+                if (q) {
+                    const searchable = [item.titulo, item.organismo, item.descripcion, item.anio, item.tipo, item.subtipo, item.subsubtipo]
+                        .join(" ").toLowerCase();
+                    if (!searchable.includes(q)) return false;
+                }
+                // Filtros de checkbox
+                const fields = ["anio", "tipo", "subtipo", "subsubtipo"];
+                for (const field of fields) {
+                    if (activeFilters[field].length && !activeFilters[field].includes(item[field] || "")) return false;
+                }
+                return true;
+            });
+
+            renderCount();
+            renderResults();
+            renderPagination();
+        }
+
+        function renderCount() {
+            const el = document.getElementById("results-count");
+            const total = filteredData.length;
+            el.innerHTML = total
+                ? `<strong>${total} resultado${total !== 1 ? "s" : ""} de Presupuesto:</strong>`
+                : `<strong>Sin resultados</strong>`;
+        }
+
+        function renderResults() {
+            const list = document.getElementById("results-list");
+            const panel = document.getElementById("results-panel");
+
+            if (filteredData.length === 0) {
+                showState("empty");
+                panel.style.display = "none";
+                return;
+            }
+
+            showState("results");
+            panel.style.display = "";
+
+            const start = (currentPage - 1) * ITEMS_POR_PAGINA;
+            const pageItems = filteredData.slice(start, start + ITEMS_POR_PAGINA);
+            const lastIndex = Math.min(start + ITEMS_POR_PAGINA, filteredData.length);
+
+            list.innerHTML = pageItems.map((item, idx) => {
+                const isLast = (start + idx) === filteredData.length - 1;
+                const borderClass = isLast ? "" : "border-bottom";
+                return `
+        <div class="result-item ${borderClass} p-x-2 p-y-1">
+            <div class="row">
+                <div class="col-xs-9">
+                    <h3 class="h5 margin-top-0 margin-bottom-05">
+                        ${item.url_pdf ? `<a href="${escapeAttr(item.url_pdf)}">${escapeHtml(item.titulo)}</a>` : escapeHtml(item.titulo)}
+                    </h3>
+
+                    ${item.descripcion ? `<p class="small margin-bottom-0">${escapeHtml(item.descripcion)}</p>` : ""}
+                </div>
+                <div class="col-xs-3 text-right">
+                    ${item.url_pdf ? `<a href="${escapeAttr(item.url_pdf)}" class="result-format text-danger"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a><br>` : ""}
+                    ${item.url_rtf ? `<a href="${escapeAttr(item.url_rtf)}" class="result-format text-primary"><i class="fa fa-file-text-o" aria-hidden="true"></i> RTF</a><br>` : ""}
+                    ${item.url_xls ? `<a href="${escapeAttr(item.url_xls)}" class="result-format text-success"><i class="fa fa-file-excel-o" aria-hidden="true"></i> XLS</a>` : ""}
+                </div>
+            </div>
+        </div>`;
+            }).join("");
+        }
+
+        function renderPagination() {
+            const nav = document.getElementById("pagination-nav");
+            const ul = document.getElementById("pagination-list");
+            const totalPages = Math.ceil(filteredData.length / ITEMS_POR_PAGINA);
+
+            if (totalPages <= 1) { nav.style.display = "none"; return; }
+            nav.style.display = "";
+
+            let html = `<li class="${currentPage === 1 ? "disabled" : ""}">
+        <a href="#" aria-label="Anterior" onclick="goToPage(${currentPage - 1}); return false;">
+            <span aria-hidden="true">«</span></a></li>`;
+
+            // Ventana deslizante de páginas
+            const delta = 2;
+            const range = [];
+            for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+                range.push(i);
+            }
+            if (range[0] > 1) {
+                html += `<li><a href="#" onclick="goToPage(1); return false;">1</a></li>`;
+                if (range[0] > 2) html += `<li class="disabled"><a>…</a></li>`;
+            }
+            range.forEach(p => {
+                html += `<li class="${p === currentPage ? "active" : ""}">
+            <a href="#" onclick="goToPage(${p}); return false;">${p}${p === currentPage ? ' <span class="sr-only">(página actual)</span>' : ""}</a></li>`;
+            });
+            if (range[range.length - 1] < totalPages) {
+                if (range[range.length - 1] < totalPages - 1) html += `<li class="disabled"><a>…</a></li>`;
+                html += `<li><a href="#" onclick="goToPage(${totalPages}); return false;">${totalPages}</a></li>`;
+            }
+
+            html += `<li class="${currentPage === totalPages ? "disabled" : ""}">
+        <a href="#" aria-label="Siguiente" onclick="goToPage(${currentPage + 1}); return false;">
+            <span aria-hidden="true">»</span></a></li>`;
+
+            ul.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredData.length / ITEMS_POR_PAGINA);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderResults();
+            renderPagination();
+            window.scrollTo({ top: document.getElementById("results-panel").offsetTop - 20, behavior: "smooth" });
+        }
+
+        function changePageSize(size) {
+            if (size === 'todos') {
+                ITEMS_POR_PAGINA = 999999;
+            } else {
+                ITEMS_POR_PAGINA = parseInt(size, 10);
+            }
+            currentPage = 1;
+            renderResults();
+            renderPagination();
+        }
+
+        /* ============================================================
+           CHIPS DE FILTROS ACTIVOS
+           ============================================================ */
+        function renderChips() {
+            const container = document.getElementById("filter-chips");
+            const labels = { anio: "Año", tipo: "Tipo", subtipo: "Subtipo", subsubtipo: "Subsubtipo" };
+            const chips = [];
+
+            Object.entries(activeFilters).forEach(([field, values]) => {
+                values.forEach(val => {
+                    chips.push(`
+                <span class="filter-chip" role="listitem">
+                    ${escapeHtml(labels[field])}: ${escapeHtml(val)}
+                    <button onclick="removeChip('${field}','${escapeAttr(val)}')" aria-label="Quitar filtro ${escapeAttr(val)}">&times;</button>
+                </span>`);
+                });
+            });
+            container.innerHTML = chips.join("");
+        }
+
+        function removeChip(field, value) {
+            const checkbox = document.querySelector(`input[data-field="${field}"][value="${CSS.escape(value)}"]`);
+            if (checkbox) { checkbox.checked = false; onFilterChange(); }
+        }
+
+        /* ============================================================
+           ESTADOS DE UI
+           ============================================================ */
+        function showState(state) {
+            ["loading", "empty", "error"].forEach(s => {
+                document.getElementById(`${s}-state`).classList.remove("visible");
+            });
+            if (state === "loading" || state === "empty" || state === "error") {
+                document.getElementById(`${state}-state`).classList.add("visible");
+            }
+        }
+
+        /* ============================================================
+           RESET
+           ============================================================ */
+        function resetAll() {
+            activeFilters = { anio: [], tipo: [], subtipo: [], subsubtipo: [] };
+            searchQuery = "";
+            document.getElementById("search-presupuesto").value = "";
+            document.querySelectorAll(".filter-checkbox-group input[type=checkbox]")
+                .forEach(el => { el.checked = false; });
+            currentPage = 1;
+            renderChips();
+            applyFiltersAndRender();
+        }
+
+        /* ============================================================
+           HELPERS
+           ============================================================ */
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+        function escapeAttr(str) {
+            return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        /* ============================================================
+           EVENTOS
+           ============================================================ */
+        document.getElementById("search-presupuesto").addEventListener("input", function () {
+            searchQuery = this.value.trim();
+            currentPage = 1;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("btn-reset").addEventListener("click", resetAll);
+
+        /* Funciones para mobile */
+        function openMobileFilters() {
+            document.getElementById('mobileOverlay').classList.add('open');
+            document.getElementById('mobileFilterPanel').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileFilters() {
+            document.getElementById('mobileOverlay').classList.remove('open');
+            document.getElementById('mobileFilterPanel').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function resetAllMobile() {
+            resetAll();
+        }
+
+        function setSort(btn) {
+            document.querySelectorAll('.btn-ordenar').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // Aquí iría la lógica de ordenamiento si estuviera disponible
+        }
+
+        /* ============================================================
+           INICIO
+           ============================================================ */
+        loadData();
+    </script>
+
+</body>
+
+</html>
