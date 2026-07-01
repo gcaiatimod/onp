@@ -341,7 +341,15 @@
                 formatsHtml = fmts.join("<br>");
             }
             var url = it.url || (it.formats && (it.formats.pdf || it.formats.rtf || it.formats.xls)) || "#";
+            var meta = [];
+            if (it.year) meta.push('<span class="text-muted">' + it.year + '</span>');
+            if (it._href) {
+                if (!hrefLabelMap) hrefLabelMap = buildHrefLabelMap();
+                var label = hrefLabelMap[it._href] || "";
+                if (label) meta.push('<span class="text-muted">' + escapeHtml(label) + '</span>');
+            }
             return '<div class="result-item border-bottom p-x-2 p-y-1">' +
+                (meta.length ? '<div class="row"><div class="col-xs-12 m-b-05">' + meta.join(" · ") + '</div></div>' : "") +
                 '<div class="row">' +
                 '<div class="col-xs-9">' +
                 '<h3 class="h5 margin-top-0 margin-bottom-05">' +
@@ -384,6 +392,7 @@
             var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
 
             cachedResults = data ? data.slice() : [];
+            cachedResults.forEach(function(it) { it._href = href; });
             if (activeYear) {
                 cachedResults = cachedResults.filter(function (it) { return String(it.year) === activeYear; });
             }
@@ -750,6 +759,7 @@
                 (SIMULATED_RESULTS[href] || []).forEach(function(it) {
                     if (q && !it.title.toLowerCase().includes(q)) return;
                     if (activeYear && String(it.year) !== activeYear) return;
+                    it._href = href;
                     all.push(it);
                 });
             });
@@ -873,6 +883,7 @@
                 (SIMULATED_RESULTS[href] || []).forEach(function (it) {
                     if (q && !it.title.toLowerCase().includes(q)) return;
                     if (activeYear && String(it.year) !== activeYear) return;
+                    it._href = href;
                     all.push(it);
                 });
             });
@@ -904,6 +915,7 @@
                 (SIMULATED_RESULTS[href] || []).forEach(function(it) {
                     if (q && !it.title.toLowerCase().includes(q)) return;
                     if (activeYear && String(it.year) !== activeYear) return;
+                    it._href = href;
                     all.push(it);
                 });
             });
@@ -975,6 +987,7 @@
                 SIMULATED_RESULTS[href].forEach(function (it) {
                     if (q && !it.title.toLowerCase().includes(q)) return;
                     if (activeYear && String(it.year) !== activeYear) return;
+                    it._href = href;
                     var label = hrefLabelMap[href] || "";
                     all.push({ item: it, group: label, href: href });
                 });
