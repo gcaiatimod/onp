@@ -665,14 +665,14 @@
                 // Cascading: show parent groups first, then child options
                 let html = `<div class="col-md-12 col-xs-12 m-b-1">
                     <select class="form-control" id="parent-select" onchange="onParentSelectChange(this)">
-                        <option value="">Seleccioná una categoría...</option>`;
+                        <option value="__all__">Todo</option>`;
                 grouped.forEach(function(ch) {
                     html += `<option value="${escapeAttr(ch.href || ch.label)}">${escapeHtml(ch.label)}</option>`;
                 });
                 html += `</select></div>
                     <div class="col-md-12 col-xs-12 m-b-1" id="child-select-container" style="display:none;">
                         <select class="form-control" id="child-select" onchange="onSubcategorySelect(this)">
-                            <option value="">Seleccioná una opción...</option>
+                            <option value="__all__">Todo</option>
                         </select>
                     </div>`;
                 container.innerHTML = html;
@@ -704,6 +704,14 @@
             if (!val) {
                 childContainer.style.display = "none";
                 hideResultsPanel();
+                return;
+            }
+
+            if (val === "__all__") {
+                childContainer.style.display = "none";
+                activeSubcategory = "Todo";
+                renderChips();
+                showCategoryResults(activeCategory);
                 return;
             }
 
