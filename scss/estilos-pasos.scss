@@ -53,6 +53,7 @@
      ---------------------------------------------------------- */
   .book-navigation.details-info {
     letter-spacing: -0.15pt;
+    font-size: 18px;
     font-family: "Montserrat", sans-serif;
 
     .page-sidebar.menu-xs {
@@ -60,7 +61,6 @@
         > li > a {
           display: block;
           color: $brand-arg-azul;
-          font-size: 14px;
           text-decoration: none;
           transition: background 0.2s ease;
 
