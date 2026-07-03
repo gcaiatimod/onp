@@ -26,6 +26,11 @@
         href="https://www.argentina.gob.ar/profiles/argentinagobar/themes/contrib/poncho/css/icono-arg.css">
     <link rel="stylesheet" href="poncho.css">
     <link rel="stylesheet" href="css/estilos-pasos.css">
+    <style>
+       #subcategorias-container {
+  display: none;
+} 
+    </style>
 </head>
 
 <body class="html no-sidebars">
@@ -149,10 +154,10 @@
                                     <h3>Filtros</h3>
                                     <button onclick="closeMobileFilters()">Cerrar <i class="fa fa-times"></i></button>
                                 </div>
-                                <div class="panel panel-filtros">
+                                <div class="panel panel-filtros m-b-0">
                                     <div class="panel-body">
                                         <h3 class="h4 fw-bold m-t-0 m-b-1 desktop-filtros-title">Filtros</h3>
-                                        <div class="m-b-2">
+                                        <div class="">
                                             <label for="filter-anio" class="fw-bold" style="font-size:14px;">Año</label>
                                             <select id="filter-anio" class="form-control" onchange="onYearChange()">
                                                 <option value="">Todos</option>
@@ -162,13 +167,13 @@
                                                 <option value="2023">2023</option>
                                             </select>
                                         </div>
-                                        <div class="m-b-2">
+                                        <div class="m-b-2" style="display: none;">
                                             <label for="category-select" class="fw-bold" style="font-size:14px;">Categoría</label>
                                             <select id="category-select" class="form-control" onchange="setCategoria(this.value)">
                                                 <option value="__all__">Todas las categorías</option>
                                             </select>
                                         </div>
-                                        <div id="subcategorias-container" class="row"></div>
+                                        <div id="subcategorias-container" class="row" style="display: none!important;"></div>
                                     </div>
                                 </div>
                                 <div class="filter-footer-mobile">
@@ -176,6 +181,29 @@
                                     <button class="btn btn-aplicar" onclick="closeMobileFilters()">Aplicar</button>
                                 </div>
                             </div>
+
+                        <!-- Navegación libro / página de libro -->
+                        <div class="card card-body hidden-xs">
+                            <details class="device-panel-menu" open="true">
+                                <summary class="text-black ar-details__title">
+                                    <span class="text-left"><i class="fa fa-list p-r-1"></i> En esta sección </span>
+                                </summary>
+                                <div class="book-navigation details-info">
+                                    <nav class="page-sidebar menu-xs">
+                                        <ul class="nav nav-pills nav-stacked" id="sidebar-menu">
+                                            <li><a href="#" data-categoria="__all__">Presupuestos Nacionales</a></li>
+                                            <li><a href="#" data-categoria="Presupuestos de la Administración Pública Nacional">Presupuestos de la Administración Pública Nacional</a></li>
+                                            <li><a href="#" data-categoria="Ejecución Presupuestaria">Ejecución Presupuestaria</a></li>
+                                            <li><a href="#" data-categoria="Evaluación Presupuestaria">Evaluación Presupuestaria</a></li>
+                                            <li><a href="#" data-categoria="Empresas Públicas, Fondos Fiduciarios y Otros Entes">Empresas Públicas, Fondos Fiduciarios y Otros Entes</a></li>
+                                            <li><a href="#" data-categoria="Sistema Presupuestario">Sistema Presupuestario</a></li>
+                                            <li><a href="#" data-categoria="Series Estadísticas">Series Estadísticas</a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </details>
+                        </div>
+
                         </div>
 
                         <!-- Columna de resultados -->
@@ -195,6 +223,7 @@
                                     </select>
                                 </div>
                             </div>
+                            <div id="subcategorias-desktop" class="row m-b-1 hidden-xs"></div>
                             <div class="panel panel-default" id="results-panel" style="display:none;">
                                 <div class="panel-body p-a-0">
                                     <div id="results-list"></div>
@@ -651,14 +680,51 @@
             sel.value = activeCategory || "";
         }
 
+        function buildSubcatHTML(grouped, flat, prefix, colClass) {
+            prefix = prefix || "";
+            colClass = colClass || "col-md-12";
+            if (grouped.length && flat.length === 0) {
+                let html = `<div class="${colClass} col-xs-12 m-b-1">
+                    <select class="form-control" id="${prefix}parent-select" onchange="onParentSelectChange(this)">
+                        <option value="__all__">Todas las categorías</option>`;
+                grouped.forEach(function(ch) {
+                    html += `<option value="${escapeAttr(ch.href || ch.label)}">${escapeHtml(ch.label)}</option>`;
+                });
+                html += `</select></div>
+                    <div class="${colClass} col-xs-12 m-b-1" id="${prefix}child-select-container" style="display:none;">
+                        <select class="form-control" id="${prefix}child-select" onchange="onSubcategorySelect(this)">
+                            <option value="__all__">Todas las categorías</option>
+                        </select>
+                    </div>`;
+                return html;
+            }
+            let html = `<div class="col-xs-12 ${colClass}">
+                <select class="form-control" onchange="onSubcategorySelect(this)">
+                    <option value="__all__">Todas las categorías</option>`;
+            flat.forEach(function(ch) {
+                html += `<option value="${escapeAttr(ch.href)}">${escapeHtml(ch.label)}</option>`;
+            });
+            grouped.forEach(function(ch) {
+                html += `<optgroup label="${escapeHtml(ch.label)}">`;
+                ch.children.forEach(function(sub) {
+                    html += `<option value="${escapeAttr(sub.href)}">${escapeHtml(sub.label)}</option>`;
+                });
+                html += `</optgroup>`;
+            });
+            html += `</select></div>`;
+            return html;
+        }
+
         function renderSubcategorias() {
             const cat = menuData.find(c => c.label === activeCategory);
             const container = document.getElementById("subcategorias-container");
+            const desktopContainer = document.getElementById("subcategorias-desktop");
             const title = document.getElementById("results-title");
 
             if (!cat || !cat.children || !cat.children.length) {
                 title.textContent = activeCategory || "Presupuestos Nacionales";
                 container.innerHTML = `<div class="col-xs-12"><p class="text-muted">Sin subcategorías</p></div>`;
+                if (desktopContainer) desktopContainer.innerHTML = "";
                 activeSubcategory = "";
                 return;
             }
@@ -671,54 +737,25 @@
             const grouped = children.filter(ch => ch.children && ch.children.length);
             const flat = children.filter(ch => !ch.children || !ch.children.length);
 
-            if (grouped.length && flat.length === 0) {
-                // Cascading: show parent groups first, then child options
-                let html = `<div class="col-md-12 col-xs-12 m-b-1">
-                    <select class="form-control" id="parent-select" onchange="onParentSelectChange(this)">
-                        <option value="__all__">Todas las categorías</option>`;
-                grouped.forEach(function(ch) {
-                    html += `<option value="${escapeAttr(ch.href || ch.label)}">${escapeHtml(ch.label)}</option>`;
-                });
-                html += `</select></div>
-                    <div class="col-md-12 col-xs-12 m-b-1" id="child-select-container" style="display:none;">
-                        <select class="form-control" id="child-select" onchange="onSubcategorySelect(this)">
-                            <option value="__all__">Todas las categorías</option>
-                        </select>
-                    </div>`;
-                container.innerHTML = html;
-            } else {
-                // Flat or mixed: single select with all options
-                let html = `<div class="col-xs-12 col-md-12">
-                    <select class="form-control" onchange="onSubcategorySelect(this)">
-                        <option value="__all__">Todas las categorías</option>`;
-                flat.forEach(function(ch) {
-                    html += `<option value="${escapeAttr(ch.href)}">${escapeHtml(ch.label)}</option>`;
-                });
-                grouped.forEach(function(ch) {
-                    html += `<optgroup label="${escapeHtml(ch.label)}">`;
-                    ch.children.forEach(function(sub) {
-                        html += `<option value="${escapeAttr(sub.href)}">${escapeHtml(sub.label)}</option>`;
-                    });
-                    html += `</optgroup>`;
-                });
-                html += `</select></div>`;
-                container.innerHTML = html;
-            }
+            const html = buildSubcatHTML(grouped, flat, "");
+            container.innerHTML = html;
+            if (desktopContainer) desktopContainer.innerHTML = buildSubcatHTML(grouped, flat, "desk-", "col-md-6");
         }
 
         function onParentSelectChange(sel) {
             const val = sel.value;
-            const childContainer = document.getElementById("child-select-container");
-            const childSelect = document.getElementById("child-select");
+            var p = sel.id.indexOf("desk-") === 0 ? "desk-" : "";
+            const childContainer = document.getElementById(p + "child-select-container");
+            const childSelect = document.getElementById(p + "child-select");
 
             if (!val) {
-                childContainer.style.display = "none";
+                if (childContainer) childContainer.style.display = "none";
                 hideResultsPanel();
                 return;
             }
 
             if (val === "__all__") {
-                childContainer.style.display = "none";
+                if (childContainer) childContainer.style.display = "none";
                 activeSubcategory = "Todas las categorías";
                 renderChips();
                 showCategoryResults(activeCategory);
@@ -746,7 +783,7 @@
                 renderChips();
                 showAllGroupResults();
             } else if (child && child.href) {
-                childContainer.style.display = "none";
+                if (childContainer) childContainer.style.display = "none";
                 activeSubcategory = child.label;
                 renderChips();
                 showResults(child.href);
@@ -931,6 +968,13 @@
         function setCategoria(label) {
             if (!label) return false;
             activeCategory = label;
+            document.querySelectorAll("#sidebar-menu li").forEach(function(li) { li.classList.remove("active"); });
+            document.querySelectorAll("#sidebar-menu a[data-categoria]").forEach(function(a) {
+                if (a.dataset.categoria === label) a.parentElement.classList.add("active");
+            });
+            setTimeout(function() {
+                document.getElementById("filter-chips").scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
             buildMenu();
 
             const subcatContainer = document.getElementById("subcategorias-container");
@@ -938,6 +982,7 @@
             if (label === "__all__") {
                 activeSubcategory = "";
                 subcatContainer.style.display = "none";
+                document.getElementById("subcategorias-desktop").innerHTML = "";
                 document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
                 renderChips();
                 showAllCategoriesResults();
@@ -1098,7 +1143,30 @@
             setCategoria("__all__");
         }
 
+        document.getElementById("sidebar-menu").addEventListener("click", function(e) {
+            var a = e.target.closest("a");
+            if (a && a.dataset.categoria !== undefined) {
+                e.preventDefault();
+                setCategoria(a.dataset.categoria);
+            }
+        });
+
         init();
+
+        /**
+         * Controla el status del componente &lt;details&gt;.
+         * Según el media query lo imprime abierto o cerrado.
+         */
+        const panelMenu = () => {
+            const details = document.querySelectorAll(".device-panel-menu");
+            if (window.innerWidth >= 991) {
+                details.forEach((e) => e.setAttribute("open", true));
+            } else if (window.innerWidth < 991) {
+                details.forEach((e) => e.removeAttribute("open"));
+            }
+        };
+        document.addEventListener("DOMContentLoaded", panelMenu);
+        window.addEventListener('resize', panelMenu, true);
     </script>
 
 </body>
