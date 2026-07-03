@@ -312,8 +312,11 @@
   /* ----------------------------------------------------------
      Resultados del panel
      ---------------------------------------------------------- */
-  #results-panel {
+   #results-panel {
     margin-top: 16px;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
   }
 
   .result-item {

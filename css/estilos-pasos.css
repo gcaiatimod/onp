@@ -616,6 +616,9 @@ html {
 }
 .presupuestos-nacionales #results-panel {
   margin-top: 16px;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 .presupuestos-nacionales .result-item .result-format {
   font-size: 12px;
