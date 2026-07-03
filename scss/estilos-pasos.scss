@@ -126,23 +126,19 @@
     border-radius: 8px;
   }
 
-  .card.card-body {
-    border: none;
-    box-shadow: none;
-    background: transparent;
-    padding: 0;
-
-    > details {
+  .device-panel-menu {
+    .book-navigation.details-info {
       padding: 0;
-
-      > .book-navigation.details-info {
-        padding: 0;
-      }
+      border: none;
     }
   }
 
   .page-sidebar.menu-xs {
     padding: 0;
+  }
+
+  .page-sidebar .nav-pills li.btn-title > a {
+    font-weight: $fw-bold;
   }
 
   .btn-mobile-filtros-open {

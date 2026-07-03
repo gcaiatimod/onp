@@ -178,27 +178,25 @@
                             </div>
 
                         <!-- Navegación libro / página de libro -->
-                        <div class="card card-body hidden-xs">
-                            <details class="device-panel-menu" open="true">
-                                <summary class="text-black ar-details__title">
-                                    <span class="text-left"><i class="fa fa-list p-r-1"></i> En esta sección </span>
-                                </summary>
-                                <div class="book-navigation details-info">
-                                    <label class="fw-bold" style="font-size:14px; display:block; padding:8px 20px 4px;">Categoría</label>
-                                    <nav class="page-sidebar menu-xs">
-                                        <ul class="nav nav-pills nav-stacked" id="sidebar-menu">
-                                            <li><a href="#" data-categoria="__all__">Presupuestos Nacionales</a></li>
-                                            <li><a href="#" data-categoria="Presupuestos de la Administración Pública Nacional">Presupuestos de la Administración Pública Nacional</a></li>
-                                            <li><a href="#" data-categoria="Ejecución Presupuestaria">Ejecución Presupuestaria</a></li>
-                                            <li><a href="#" data-categoria="Evaluación Presupuestaria">Evaluación Presupuestaria</a></li>
-                                            <li><a href="#" data-categoria="Empresas Públicas, Fondos Fiduciarios y Otros Entes">Empresas Públicas, Fondos Fiduciarios y Otros Entes</a></li>
-                                            <li><a href="#" data-categoria="Sistema Presupuestario">Sistema Presupuestario</a></li>
-                                            <li><a href="#" data-categoria="Series Estadísticas">Series Estadísticas</a></li>
-                                        </ul>
-                                    </nav>
-                                </div>
-                            </details>
-                        </div>
+                        <details class="device-panel-menu hidden-xs" open="true">
+                            <summary class="text-black ar-details__title">
+                                <span class="text-left"><i class="fa fa-list p-r-1"></i> En esta sección </span>
+                            </summary>
+                            <div class="book-navigation details-info">
+                                <label class="fw-bold" style="font-size:14px; display:block; padding:8px 20px 4px;">Categoría</label>
+                                <nav class="page-sidebar menu-xs">
+                                    <ul class="nav nav-pills nav-stacked" id="sidebar-menu">
+                                        <li class="btn-title"><a href="#" data-categoria="__all__">Presupuestos Nacionales</a></li>
+                                        <li><a href="#" data-categoria="Presupuestos de la Administración Pública Nacional">Presupuestos de la Administración Pública Nacional</a></li>
+                                        <li><a href="#" data-categoria="Ejecución Presupuestaria">Ejecución Presupuestaria</a></li>
+                                        <li><a href="#" data-categoria="Evaluación Presupuestaria">Evaluación Presupuestaria</a></li>
+                                        <li><a href="#" data-categoria="Empresas Públicas, Fondos Fiduciarios y Otros Entes">Empresas Públicas, Fondos Fiduciarios y Otros Entes</a></li>
+                                        <li><a href="#" data-categoria="Sistema Presupuestario">Sistema Presupuestario</a></li>
+                                        <li><a href="#" data-categoria="Series Estadísticas">Series Estadísticas</a></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </details>
 
                         </div>
 
@@ -974,7 +972,11 @@
             activeCategory = label;
             document.querySelectorAll("#sidebar-menu li").forEach(function(li) { li.classList.remove("active"); });
             document.querySelectorAll("#sidebar-menu a[data-categoria]").forEach(function(a) {
-                if (a.dataset.categoria === label) a.parentElement.classList.add("active");
+                a.classList.remove("active");
+                if (a.dataset.categoria === label) {
+                    a.classList.add("active");
+                    a.parentElement.classList.add("active");
+                }
             });
             setTimeout(function() {
                 document.getElementById("filter-chips").scrollIntoView({ behavior: "smooth", block: "start" });

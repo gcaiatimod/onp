@@ -453,20 +453,15 @@ html {
   box-shadow: none;
   border-radius: 8px;
 }
-.presupuestos-nacionales .card.card-body {
+.presupuestos-nacionales .device-panel-menu .book-navigation.details-info {
+  padding: 0;
   border: none;
-  box-shadow: none;
-  background: transparent;
-  padding: 0;
-}
-.presupuestos-nacionales .card.card-body > details {
-  padding: 0;
-}
-.presupuestos-nacionales .card.card-body > details > .book-navigation.details-info {
-  padding: 0;
 }
 .presupuestos-nacionales .page-sidebar.menu-xs {
   padding: 0;
+}
+.presupuestos-nacionales .page-sidebar .nav-pills li.btn-title > a {
+  font-weight: 700;
 }
 .presupuestos-nacionales .btn-mobile-filtros-open {
   display: none;
