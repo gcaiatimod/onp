@@ -26,11 +26,6 @@
         href="https://www.argentina.gob.ar/profiles/argentinagobar/themes/contrib/poncho/css/icono-arg.css">
     <link rel="stylesheet" href="poncho.css">
     <link rel="stylesheet" href="css/estilos-pasos.css">
-    <style>
-       #subcategorias-container {
-  display: none;
-} 
-    </style>
 </head>
 
 <body class="html no-sidebars">
@@ -167,7 +162,7 @@
                                                 <option value="2023">2023</option>
                                             </select>
                                         </div>
-                                        <div class="m-b-2 hidden-md hidden-lg">
+                                        <div class="m-b-2 hidden-md hidden-lg m-t-1">
                                             <label for="category-select" class="fw-bold" style="font-size:14px;">Categoría</label>
                                             <select id="category-select" class="form-control" onchange="setCategoria(this.value)">
                                                 <option value="__all__">Todas las categorías</option>
@@ -189,6 +184,7 @@
                                     <span class="text-left"><i class="fa fa-list p-r-1"></i> En esta sección </span>
                                 </summary>
                                 <div class="book-navigation details-info">
+                                    <label class="fw-bold" style="font-size:14px; display:block; padding:8px 20px 4px;">Categoría</label>
                                     <nav class="page-sidebar menu-xs">
                                         <ul class="nav nav-pills nav-stacked" id="sidebar-menu">
                                             <li><a href="#" data-categoria="__all__">Presupuestos Nacionales</a></li>
