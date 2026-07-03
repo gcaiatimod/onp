@@ -854,6 +854,8 @@
             renderSubcategorias();
             if (activeResultsHref) {
                 showResults(activeResultsHref);
+            } else if (activeCategory === "__all__") {
+                showAllCategoriesResults();
             } else {
                 showCategoryResults(activeCategory);
             }
@@ -862,7 +864,11 @@
         function removeSubcategory() {
             activeSubcategory = "";
             renderChips();
-            showCategoryResults(activeCategory);
+            if (activeCategory === "__all__") {
+                showAllCategoriesResults();
+            } else {
+                showCategoryResults(activeCategory);
+            }
         }
 
         function removeCategoria() {
@@ -878,6 +884,8 @@
             var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
             if (q) {
                 showGlobalResults(q);
+            } else if (activeCategory === "__all__") {
+                showAllCategoriesResults();
             } else {
                 showCategoryResults(activeCategory);
             }
@@ -1113,7 +1121,11 @@
             } else {
                 filterSubcategorias("");
                 renderSubcategorias();
-                showCategoryResults(activeCategory);
+                if (activeCategory === "__all__") {
+                    showAllCategoriesResults();
+                } else {
+                    showCategoryResults(activeCategory);
+                }
             }
         });
 
