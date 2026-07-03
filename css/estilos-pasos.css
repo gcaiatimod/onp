@@ -406,7 +406,7 @@ html {
   display: block;
   color: #232D4F;
   font-size: 14px;
-  padding: 10px 15px;
+  padding: 8px 20px;
   border-radius: 4px;
   text-decoration: none;
   transition: background 0.2s ease;
@@ -452,6 +452,21 @@ html {
   border: none;
   box-shadow: none;
   border-radius: 8px;
+}
+.presupuestos-nacionales .card.card-body {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+.presupuestos-nacionales .card.card-body > details {
+  padding: 0;
+}
+.presupuestos-nacionales .card.card-body > details > .book-navigation.details-info {
+  padding: 0;
+}
+.presupuestos-nacionales .page-sidebar.menu-xs {
+  padding: 0;
 }
 .presupuestos-nacionales .btn-mobile-filtros-open {
   display: none;
