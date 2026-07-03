@@ -414,6 +414,11 @@ html {
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li > a:hover {
   background: #E3E7ED;
 }
+.presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.btn-title > a {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 20px;
+}
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.active > a,
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.active > a:hover,
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.active > a:focus {
