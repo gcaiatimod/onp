@@ -407,7 +407,7 @@ html {
   color: #232D4F;
   font-size: 14px;
   padding: 8px 20px;
-  border-radius: 4px;
+  border-radius: 0;
   text-decoration: none;
   transition: background 0.2s ease;
 }
@@ -417,8 +417,8 @@ html {
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.active > a,
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.active > a:hover,
 .presupuestos-nacionales .book-navigation.details-info .page-sidebar.menu-xs .nav-pills.nav-stacked > li.active > a:focus {
-  background: transparent;
-  color: #232D4F;
+  background: #232D4F;
+  color: #FFFFFF;
   font-weight: 700;
 }
 .presupuestos-nacionales .sidebar-submenu {
