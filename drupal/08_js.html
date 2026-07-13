@@ -1,0 +1,921 @@
+<script>
+    const MENU_DATA = [
+        {
+            "id": "presupuestos", "label": "Presupuestos de la Administración Pública Nacional", "children": [
+                {
+                    "label": "Mensaje y Proyecto de Ley", "href": "#mensajes", "children": [
+                        { "label": "Mensaje y Proyecto de Ley", "href": "#mensajes" },
+                        { "label": "Planillas Anexas al Articulado", "href": "#mensajes-planillas" },
+                        { "label": "Fascículos Jurisdicción Entidad", "href": "#mensajes-fasciculos" },
+                        { "label": "Anexo Estadístico y Ubicación Geográfica", "href": "#mensajes-estadistico" }
+                    ]
+                },
+                {
+                    "label": "Ley de Presupuesto", "href": "#ley", "children": [
+                        { "label": "Ley de Presupuesto", "href": "#ley" },
+                        { "label": "Planillas Anexas al Articulado", "href": "#ley-planillas" },
+                        { "label": "Decisión Administrativa Nro. 1", "href": "#ley-decision" },
+                        { "label": "Anexos", "href": "#ley-anexos" }
+                    ]
+                },
+                {
+                    "label": "Otros Documentos", "href": "#otros", "children": [
+                        { "label": "Presupuesto Consolidado del Sector Público Nacional", "href": "#otros-consolidado" },
+                        { "label": "Síntesis del Mensaje y Proyecto de Ley", "href": "#otros-resumen" },
+                        { "label": "Informe de Avance del Presup. al Congreso de la Nación", "href": "#otros-informe" }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ejecucion", "label": "Ejecución Presupuestaria", "children": [
+                { "label": "Ejecución Adm. Nacional Base Devengado", "href": "https://www.economia.gob.ar/onp/ejecucion/2026" }, { "label": "Cuenta AIF Sector Público Nacional Base Caja", "href": "https://www.economia.gob.ar/onp/ejecucion/2026#aif" }, { "label": "Ejecución Adm. Nacional Divisas", "href": "https://www.economia.gob.ar/onp/ejecucion/2026#divisas" }, { "label": "Boletín Fiscal", "href": "https://www.economia.gob.ar/onp/ejecucion/2026#bf" }]
+        },
+        {
+            "id": "evaluacion", "label": "Evaluación Presupuestaria", "children": [
+                { "label": "Síntesis Ejecutiva", "href": "https://www.economia.gob.ar/onp/evaluacion/2026" }, { "label": "Seguimiento Físico Financiero", "href": "https://www.economia.gob.ar/onp/evaluacion/2026#seguimiento" }, { "label": "Resúmen Orientado al Ciudadano", "href": "https://www.economia.gob.ar/onp/evaluacion/2026#resumen" }, { "label": "Inversión Pública Nacional", "href": "https://www.economia.gob.ar/onp/evaluacion/2026#inversion" }, { "label": "Cuenta de Inversión", "href": "https://www.economia.gob.ar/onp/evaluacion/2026#cuenta" }]
+        },
+        {
+            "id": "empresas", "label": "Empresas Públicas, Fondos Fiduciarios y Otros Entes", "children": [
+                { "label": "Presupuestos de Empresas Públicas y Otros Entes", "href": "https://www.economia.gob.ar/onp/empresas/2026" }, { "label": "Presupuestos de Fondos Fiduciarios", "href": "https://www.economia.gob.ar/onp/empresas/2026#ff" }, { "label": "Ejecución Presupuestaria de los Fondos Fiduciarios", "href": "https://www.economia.gob.ar/onp/empresas/2026#ejecucion_ff" }, { "label": "Ejecución Presupuestaria de Empresas Públicas", "href": "https://www.economia.gob.ar/onp/empresas/2026#ejecucion_empresas" }, { "label": "Instructivos", "href": "https://www.economia.gob.ar/onp/empresas/instructivos" }]
+        },
+        {
+            "id": "sistema", "label": "Sistema Presupuestario", "children": [
+                { "label": "Normativa", "href": "https://www.economia.gob.ar/onp/sistema" }, { "label": "Manuales", "href": "https://www.economia.gob.ar/onp/sistema#manuales" }, { "label": "Instructivos y Soportes de Información", "href": "https://www.economia.gob.ar/onp/sistema#instructivos" }]
+        },
+        { "id": "estadisticas", "label": "Series Estadísticas", "href": "https://www.economia.gob.ar/onp/estadisticas/", "children": [] }
+    ];
+    let menuData = MENU_DATA;
+    let activeCategory = "";
+    let activeYear = "";
+    let activeResultsHref = "";
+    let currentPage = 1;
+    let ITEMS_POR_PAGINA = 10;
+    let cachedResults = [];
+    let currentGroupHrefs = [];
+    let searchQuery = "";
+    let activeSubcategory = "";
+
+    window.hideResultsPanel = function () {
+        document.getElementById("results-panel").style.display = "none";
+        activeResultsHref = "";
+    }
+
+    window.onSubcategorySelect = function (sel) {
+        const val = sel.value;
+        if (!val) { hideResultsPanel(); return; }
+        if (val === "__all__") {
+            activeSubcategory = "Todas las categorías";
+            renderChips();
+            if (currentGroupHrefs && currentGroupHrefs.length) {
+                showAllGroupResults();
+            } else {
+                showCategoryResults(activeCategory);
+            }
+            return;
+        }
+        const opt = sel.options[sel.selectedIndex];
+        activeSubcategory = opt.text;
+        renderChips();
+        showResults(val);
+    }
+
+    window.renderResultItemHtml = function (it) {
+        var formatsHtml = "";
+        if (it.formats) {
+            var fmts = [];
+            if (it.formats.pdf) fmts.push('<a href="' + escapeAttr(it.formats.pdf) + '" class="result-format text-danger"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a>');
+            if (it.formats.rtf) fmts.push('<a href="' + escapeAttr(it.formats.rtf) + '" class="result-format text-primary"><i class="fa fa-file-text-o" aria-hidden="true"></i> RTF</a>');
+            if (it.formats.xls) fmts.push('<a href="' + escapeAttr(it.formats.xls) + '" class="result-format text-success"><i class="fa fa-file-excel-o" aria-hidden="true"></i> XLS</a>');
+            formatsHtml = fmts.join("<br>");
+        }
+        var url = it.url || (it.formats && (it.formats.pdf || it.formats.rtf || it.formats.xls)) || "#";
+        var meta = [];
+        if (it.year) meta.push('<span class="text-muted">' + it.year + '</span>');
+        if (it._href) {
+            if (!hrefLabelMap) hrefLabelMap = buildHrefLabelMap();
+            var label = hrefLabelMap[it._href] || "";
+            if (label) meta.push('<span class="text-muted">' + escapeHtml(label) + '</span>');
+        }
+        return '<div class="result-item border-bottom p-x-2 p-y-1">' +
+            (meta.length ? '<div class="row"><div class="col-xs-12 m-b-05" style="font-size:11px;">' + meta.join(" · ") + '</div></div>' : "") +
+            '<div class="row">' +
+            '<div class="col-xs-9">' +
+            '<h3 class="h5 margin-top-0 margin-bottom-05">' +
+            '<a href="' + escapeAttr(url) + '">' + escapeHtml(it.title) + '</a>' +
+            '</h3>' +
+            '</div>' +
+            '<div class="col-xs-3 text-right">' + formatsHtml + '</div>' +
+            '</div>' +
+            '</div>';
+    }
+
+    window.renderResultsPage = function () {
+        cachedResults.sort(function (a, b) { return (b.year || 0) - (a.year || 0); });
+        var list = document.getElementById("results-list");
+        if (cachedResults.length === 0) {
+            list.innerHTML = '<div class="p-x-2 p-y-2 text-muted"><p class="margin-0">No hay resultados' +
+                (activeYear ? ' para ' + activeYear : '') + '</p></div>';
+            return;
+        }
+        var start = (currentPage - 1) * ITEMS_POR_PAGINA;
+        var pageItems = cachedResults.slice(start, start + ITEMS_POR_PAGINA);
+        list.innerHTML = pageItems.map(function (it) {
+            return renderResultItemHtml(it);
+        }).join("");
+        renderPagination();
+    }
+
+    window.goToPage = function (page) {
+        const totalPages = Math.ceil(cachedResults.length / ITEMS_POR_PAGINA);
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        renderResultsPage();
+        renderPagination();
+        window.scrollTo({ top: document.getElementById("results-panel").offsetTop - 20, behavior: "smooth" });
+    }
+
+    window.showResults = function (href) {
+        activeResultsHref = href;
+        var data = SIMULATED_RESULTS[href];
+        var panel = document.getElementById("results-panel");
+        var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+
+        cachedResults = data ? data.slice() : [];
+        cachedResults.forEach(function (it) { it._href = href; });
+        if (activeYear) {
+            cachedResults = cachedResults.filter(function (it) { return String(it.year) === activeYear; });
+        }
+        if (q) {
+            cachedResults = cachedResults.filter(function (it) { return it.title.toLowerCase().includes(q); });
+        }
+
+        currentPage = 1;
+        renderResultsPage();
+        panel.style.display = "block";
+    }
+
+    const SIMULATED_RESULTS = {
+        "#mensajes": [
+            { title: "Mensaje de remisión", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.pdf" } },
+            { title: "Proyecto de Ley", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.pdf" } },
+            { title: "Composición del gasto por Finalidad-Función y Carácter Económico - Nº 1 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.pdf", rtf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa101.rtf" } },
+            { title: "Composición del gasto por Finalidad-Función y Carácter Institucional - Nº 2 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa102.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa102.pdf", rtf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa102.rtf" } },
+            { title: "Composición del gasto por Finalidad-Función y por Jurisdicción - Nº 3 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", xls: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.xlsx" } },
+            { title: "Composición del gasto por Jurisdicción y Carácter Institucional - Nº 4 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", xls: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.xlsx" } },
+            { title: "Composición del gasto por Jurisdicción y Carácter Económico - Nº 5 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", xls: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.xlsx" } },
+            { title: "Composición del gasto por Jurisdicción y por Fuente de Financiamiento - Nº 6 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", xls: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.xlsx" } },
+            { title: "Composición del gasto por Carácter Económico y por Carácter Institucional - Nº 7 Anexa al Art.1º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", xls: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.xlsx" } },
+            { title: "Cálculo de Recursos por Carácter Económico y por Carácter Institucional - Nº 8 Anexa al Art.2º", year: 2023, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.pdf", xls: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2023/ley/pdf/planillas_anexas/capitulo1/anexa103.xlsx" } },
+            { title: "Mensaje de remisión 2026", year: 2026, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2026/mensaje.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2026/mensaje.pdf" } },
+            { title: "Proyecto de Ley 2026", year: 2026, url: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2026/ley.pdf", formats: { pdf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2026/ley.pdf", rtf: "https://www.economia.gob.ar/onp/documentos/presutexto/proy2026/ley.rtf" } }
+        ],
+        "#mensajes-planillas": [
+            { title: "Planilla Anexa I - Recursos por Rubro", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa II - Gastos por Inciso", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa III - Gastos por Finalidad", year: 2024, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa IV - Gastos por Jurisdicción", year: 2024, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa V - Clasificación Geográfica", year: 2025, formats: { pdf: "#", rtf: "#" } },
+            { title: "Planilla Anexa VI - Recursos por Cuenta", year: 2026, formats: { pdf: "#" } }
+        ],
+        "#mensajes-fasciculos": [
+            { title: "Fascículo Jurisdicción - Administración Central", year: 2023, formats: { pdf: "#" } },
+            { title: "Fascículo Jurisdicción - Organismos Descentralizados", year: 2024, formats: { pdf: "#" } },
+            { title: "Fascículo Jurisdicción - Empresas Públicas", year: 2025, formats: { pdf: "#" } },
+            { title: "Fascículo Jurisdicción - Fondos Fiduciarios", year: 2026, formats: { pdf: "#" } }
+        ],
+        "#mensajes-estadistico": [
+            { title: "Anexo Estadístico - Series Macrofiscales", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Anexo Estadístico - Gasto Primario", year: 2024, formats: { pdf: "#" } },
+            { title: "Ubicación Geográfica - Obras por Provincia", year: 2025, formats: { pdf: "#", xls: "#" } },
+            { title: "Ubicación Geográfica - Inversión Regional", year: 2026, formats: { pdf: "#" } }
+        ],
+        "#ley": [
+            { title: "Ley de Presupuesto 2023 - Texto completo", year: 2023, formats: { pdf: "#", rtf: "#" } },
+            { title: "Ley de Presupuesto 2024 - Texto completo", year: 2024, formats: { pdf: "#", rtf: "#" } },
+            { title: "Ley de Presupuesto 2025 - Texto completo", year: 2025, formats: { pdf: "#", rtf: "#" } },
+            { title: "Ley de Presupuesto 2026 - Texto completo", year: 2026, formats: { pdf: "#", rtf: "#" } },
+            { title: "Artículos 1 al 50", year: 2023, formats: { pdf: "#" } },
+            { title: "Artículos 51 al 100", year: 2024, formats: { pdf: "#" } }
+        ],
+        "#ley-planillas": [
+            { title: "Planilla Anexa Ley - Recursos", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa Ley - Gastos Corrientes", year: 2024, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa Ley - Gastos de Capital", year: 2025, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa Ley - Clasificación Económica", year: 2026, formats: { pdf: "#", xls: "#" } },
+            { title: "Planilla Anexa Ley - Fuentes de Financiamiento", year: 2026, formats: { pdf: "#" } }
+        ],
+        "#ley-decision": [
+            { title: "Decisión Administrativa Nro. 1 - Distribución del Presupuesto", year: 2023, formats: { pdf: "#" } },
+            { title: "Decisión Administrativa Nro. 1 - Anexo I", year: 2024, formats: { pdf: "#", rtf: "#" } },
+            { title: "Decisión Administrativa Nro. 1 - Anexo II", year: 2025, formats: { pdf: "#" } },
+            { title: "Decisión Administrativa Nro. 1 - Modificaciones", year: 2026, formats: { pdf: "#", xls: "#" } }
+        ],
+        "#ley-anexos": [
+            { title: "Anexo I - Presupuesto de Recursos", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Anexo II - Presupuesto de Gastos", year: 2024, formats: { pdf: "#", xls: "#" } },
+            { title: "Anexo III - Personal de la Administración", year: 2025, formats: { pdf: "#" } },
+            { title: "Anexo IV - Transferencias", year: 2026, formats: { pdf: "#", xls: "#" } },
+            { title: "Anexo V - Deuda Pública", year: 2026, formats: { pdf: "#", rtf: "#" } }
+        ],
+        "#otros-consolidado": [
+            { title: "Presupuesto Consolidado - Sector Público Nacional", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Presupuesto Consolidado - Administración Central", year: 2024, formats: { pdf: "#" } },
+            { title: "Presupuesto Consolidado - Organismos Descentralizados", year: 2025, formats: { pdf: "#", xls: "#" } },
+            { title: "Presupuesto Consolidado - Empresas Públicas", year: 2026, formats: { pdf: "#" } }
+        ],
+        "#otros-resumen": [
+            { title: "Síntesis del Mensaje y Proyecto de Ley - Resumen Ejecutivo", year: 2023, formats: { pdf: "#", rtf: "#" } },
+            { title: "Síntesis del Mensaje y Proyecto de Ley - Versión Ciudadana", year: 2024, formats: { pdf: "#" } },
+            { title: "Síntesis del Mensaje y Proyecto de Ley - Infografía", year: 2025, formats: { pdf: "#", rtf: "#" } },
+            { title: "Síntesis del Mensaje y Proyecto de Ley - PPT", year: 2026, formats: { pdf: "#", xls: "#" } }
+        ],
+        "#otros-informe": [
+            { title: "Informe de Avance - I Trimestre", year: 2023, formats: { pdf: "#", xls: "#" } },
+            { title: "Informe de Avance - II Trimestre", year: 2024, formats: { pdf: "#", xls: "#" } },
+            { title: "Informe de Avance - III Trimestre", year: 2025, formats: { pdf: "#", xls: "#" } },
+            { title: "Informe de Avance - IV Trimestre", year: 2026, formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/ejecucion/2026": [
+            { title: "Ejecución - Gastos por Jurisdicción", year: 2023, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#" } },
+            { title: "Ejecución - Gastos por Inciso", year: 2024, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución - Gastos por Finalidad", year: 2025, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución - Recursos por Rubro", year: 2026, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución - Análisis del Resultado Financiero", year: 2026, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/ejecucion/2026#aif": [
+            { title: "Cuenta AIF - Estado de Ingresos y Gastos", year: 2023, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#" } },
+            { title: "Cuenta AIF - Recursos Financieros", year: 2024, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Cuenta AIF - Obligaciones Financieras", year: 2025, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Cuenta AIF - Inversiones Financieras", year: 2026, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/ejecucion/2026#divisas": [
+            { title: "Divisas - Ingresos en Moneda Extranjera", year: 2023, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Divisas - Egresos en Moneda Extranjera", year: 2024, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Divisas - Balance Cambiario del Sector Público", year: 2025, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#" } },
+            { title: "Divisas - Deuda en Moneda Extranjera", year: 2026, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/ejecucion/2026#bf": [
+            { title: "Boletín Fiscal - Resumen Ejecutivo", year: 2023, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Boletín Fiscal - Ingresos Tributarios", year: 2024, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Boletín Fiscal - Gasto Primario", year: 2025, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Boletín Fiscal - Resultado Fiscal", year: 2026, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Boletín Fiscal - Deuda Pública", year: 2026, url: "https://www.economia.gob.ar/onp/ejecucion/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/evaluacion/2026": [
+            { title: "Síntesis Ejecutiva - Resumen de la Gestión", year: 2023, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", rtf: "#" } },
+            { title: "Síntesis Ejecutiva - Indicadores Fiscales", year: 2024, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Síntesis Ejecutiva - Evaluación por Jurisdicción", year: 2025, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Síntesis Ejecutiva - Evaluación Global", year: 2026, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/evaluacion/2026#seguimiento": [
+            { title: "Seguimiento Físico - Metas Físicas por Jurisdicción", year: 2023, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Seguimiento Físico - Indicadores de Gestión", year: 2024, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } },
+            { title: "Seguimiento Financiero - Ejecución por Programa", year: 2025, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Seguimiento Financiero - Desvíos Presupuestarios", year: 2026, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/evaluacion/2026#resumen": [
+            { title: "Resumen Orientado al Ciudadano - Versión 2023", year: 2023, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } },
+            { title: "Resumen Orientado al Ciudadano - Versión 2024", year: 2024, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", rtf: "#" } },
+            { title: "Resumen Orientado al Ciudadano - Versión 2025", year: 2025, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } },
+            { title: "Resumen Orientado al Ciudadano - Versión 2026", year: 2026, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/evaluacion/2026#inversion": [
+            { title: "Inversión Pública - Proyectos por Jurisdicción", year: 2023, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Inversión Pública - Avance de Obras", year: 2024, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Inversión Pública - Financiamiento Internacional", year: 2025, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } },
+            { title: "Inversión Pública - Proyectos Prioritarios", year: 2026, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/evaluacion/2026#cuenta": [
+            { title: "Cuenta de Inversión - Documento Completo", year: 2023, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } },
+            { title: "Cuenta de Inversión - Tomo I", year: 2024, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", rtf: "#" } },
+            { title: "Cuenta de Inversión - Tomo II", year: 2025, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#" } },
+            { title: "Cuenta de Inversión - Resumen Ejecutivo", year: 2026, url: "https://www.economia.gob.ar/onp/evaluacion/2026", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/empresas/2026": [
+            { title: "Presupuesto Empresas Públicas - Recurso", year: 2023, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Presupuesto Empresas Públicas - Gastos", year: 2024, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Presupuesto Empresas Públicas - Inversiones", year: 2025, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Presupuesto Empresas Públicas - RRHH", year: 2026, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/empresas/2026#ff": [
+            { title: "Fondos Fiduciarios - Planillas de Recursos", year: 2023, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Fondos Fiduciarios - Planillas de Gastos", year: 2024, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Fondos Fiduciarios - Informe de Gestión", year: 2025, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#" } },
+            { title: "Fondos Fiduciarios - Estados Contables", year: 2026, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/empresas/2026#ejecucion_ff": [
+            { title: "Ejecución FF - Ingresos por Fondo", year: 2023, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución FF - Egresos por Fondo", year: 2024, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución FF - Resultado por Fondo", year: 2025, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#" } },
+            { title: "Ejecución FF - Deuda por Fondo", year: 2026, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/empresas/2026#ejecucion_empresas": [
+            { title: "Ejecución Empresas - Ingresos Operativos", year: 2023, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución Empresas - Egresos Operativos", year: 2024, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución Empresas - Resultado por Empresa", year: 2025, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#", xls: "#" } },
+            { title: "Ejecución Empresas - Plantel de Personal", year: 2026, url: "https://www.economia.gob.ar/onp/empresas/2026", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/empresas/instructivos": [
+            { title: "Instructivo - Formulación Presupuestaria", year: 2023, url: "https://www.economia.gob.ar/onp/empresas/instructivos", formats: { pdf: "#" } },
+            { title: "Instructivo - Carga de Datos", year: 2024, url: "https://www.economia.gob.ar/onp/empresas/instructivos", formats: { pdf: "#", rtf: "#" } },
+            { title: "Instructivo - Reportes", year: 2025, url: "https://www.economia.gob.ar/onp/empresas/instructivos", formats: { pdf: "#" } },
+            { title: "Instructivo - Anexos", year: 2026, url: "https://www.economia.gob.ar/onp/empresas/instructivos", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/sistema": [
+            { title: "Normativa - Ley de Administración Financiera", year: 2023, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } },
+            { title: "Normativa - Decretos Reglamentarios", year: 2024, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#", rtf: "#" } },
+            { title: "Normativa - Disposiciones ONP", year: 2025, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } },
+            { title: "Normativa - Circulares", year: 2026, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/sistema#manuales": [
+            { title: "Manual de Clasificaciones Presupuestarias", year: 2023, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } },
+            { title: "Manual de Formulación Presupuestaria", year: 2024, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#", rtf: "#" } },
+            { title: "Manual de Ejecución Presupuestaria", year: 2025, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } },
+            { title: "Manual de Evaluación Presupuestaria", year: 2026, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#", xls: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/sistema#instructivos": [
+            { title: "Instructivo - Clasificador por Objeto del Gasto", year: 2023, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#", xls: "#" } },
+            { title: "Instructivo - Clasificador por Rubro", year: 2024, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#", xls: "#" } },
+            { title: "Instructivo - Tablas de Referencia", year: 2025, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } },
+            { title: "Instructivo - Soportes de Información", year: 2026, url: "https://www.economia.gob.ar/onp/sistema", formats: { pdf: "#" } }
+        ],
+        "https://www.economia.gob.ar/onp/estadisticas/": [
+            { title: "Series Estadísticas - Recaudación Tributaria", year: 2023, url: "https://www.economia.gob.ar/onp/estadisticas/", formats: { pdf: "#", xls: "#" } },
+            { title: "Series Estadísticas - Gasto Primario", year: 2024, url: "https://www.economia.gob.ar/onp/estadisticas/", formats: { pdf: "#", xls: "#" } },
+            { title: "Series Estadísticas - Resultado Fiscal", year: 2025, url: "https://www.economia.gob.ar/onp/estadisticas/", formats: { pdf: "#", xls: "#" } },
+            { title: "Series Estadísticas - Deuda Pública", year: 2026, url: "https://www.economia.gob.ar/onp/estadisticas/", formats: { pdf: "#", xls: "#" } },
+            { title: "Series Estadísticas - Stock de Capital", year: 2026, url: "https://www.economia.gob.ar/onp/estadisticas/", formats: { pdf: "#" } }
+        ]
+    };
+
+    window.init = function () {
+        const sel = document.getElementById("filter-anio");
+        if (sel) {
+            sel.value = "2026";
+            activeYear = "2026";
+        }
+
+        // Categoría inicial al cargar la página.
+        // Descomentá la que necesites y comentá las demás.
+        setCategoria("Presupuestos de la Administración Pública Nacional");
+        // setCategoria("Ejecución Presupuestaria");
+        // setCategoria("Evaluación Presupuestaria");
+        // setCategoria("Empresas Públicas, Fondos Fiduciarios y Otros Entes");
+        // setCategoria("Sistema Presupuestario");
+        // setCategoria("Series Estadísticas");
+        // setCategoria("__all__"); // Todas las categorías
+    }
+
+    window.onYearChange = function () {
+        activeYear = document.getElementById("filter-anio").value;
+        activeSubcategory = "";
+        var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+
+        if (activeCategory === "__all__") {
+            document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
+            renderChips();
+            if (q) { showGlobalResults(q); } else { showAllCategoriesResults(); }
+            return;
+        }
+
+        renderSubcategorias();
+        renderChips();
+        if (q) {
+            showGlobalResults(q);
+        } else {
+            showCategoryResults(activeCategory);
+        }
+    }
+
+    window.matchesYear = function (label, siblings) {
+        if (!activeYear) return true;
+        if (/^\d{4}$/.test(label)) return label === activeYear;
+        if (label === "Años Anteriores") {
+            return !siblings.some(s => /^\d{4}$/.test(s) && s === activeYear);
+        }
+        return true;
+    }
+
+    window.buildMenu = function () {
+        const sel = document.getElementById("category-select");
+        if (!sel || !menuData.length) return;
+
+        sel.innerHTML = `<option value="__all__">Todas las categorías</option>` +
+            menuData.map(cat => {
+                return `<option value="${escapeAttr(cat.label)}">${escapeHtml(cat.label)}</option>`;
+            }).join("");
+
+        sel.value = activeCategory || "";
+    }
+
+    window.buildSubcatHTML = function (grouped, flat, prefix, colClass) {
+        prefix = prefix || "";
+        colClass = colClass || "col-md-12";
+        if (grouped.length && flat.length === 0) {
+            let html = `<div class="${colClass} col-xs-12 m-b-1">
+                    <select class="form-control" id="${prefix}parent-select" onchange="onParentSelectChange(this)">
+                        <option value="__all__">Todas las categorías</option>`;
+            grouped.forEach(function (ch) {
+                html += `<option value="${escapeAttr(ch.href || ch.label)}">${escapeHtml(ch.label)}</option>`;
+            });
+            html += `</select></div>
+                    <div class="${colClass} col-xs-12 m-b-1" id="${prefix}child-select-container" style="display:none;">
+                        <select class="form-control" id="${prefix}child-select" onchange="onSubcategorySelect(this)">
+                            <option value="__all__">Todas las categorías</option>
+                        </select>
+                    </div>`;
+            return html;
+        }
+        let html = `<div class="col-xs-12 ${colClass}">
+                <select class="form-control" onchange="onSubcategorySelect(this)">
+                    <option value="__all__">Todas las categorías</option>`;
+        flat.forEach(function (ch) {
+            html += `<option value="${escapeAttr(ch.href)}">${escapeHtml(ch.label)}</option>`;
+        });
+        grouped.forEach(function (ch) {
+            html += `<optgroup label="${escapeHtml(ch.label)}">`;
+            ch.children.forEach(function (sub) {
+                html += `<option value="${escapeAttr(sub.href)}">${escapeHtml(sub.label)}</option>`;
+            });
+            html += `</optgroup>`;
+        });
+        html += `</select></div>`;
+        return html;
+    }
+
+    window.renderSubcategorias = function () {
+        const cat = menuData.find(c => c.label === activeCategory);
+        const container = document.getElementById("subcategorias-container");
+        const desktopContainer = document.getElementById("subcategorias-desktop");
+        const title = document.getElementById("results-title");
+
+        if (!cat || !cat.children || !cat.children.length) {
+            title.textContent = activeCategory || "Presupuestos Nacionales";
+            container.innerHTML = `<div class="col-xs-12"><p class="text-muted">Sin subcategorías</p></div>`;
+            if (desktopContainer) desktopContainer.innerHTML = "";
+            activeSubcategory = "";
+            return;
+        }
+
+        title.textContent = activeYear ? activeYear + " · " + cat.label : cat.label;
+
+        const siblingLabels = cat.children.map(ch => ch.label);
+        const children = cat.children.filter(ch => matchesYear(ch.label, siblingLabels));
+
+        const grouped = children.filter(ch => ch.children && ch.children.length);
+        const flat = children.filter(ch => !ch.children || !ch.children.length);
+
+        const html = buildSubcatHTML(grouped, flat, "");
+        container.innerHTML = html;
+        if (desktopContainer) desktopContainer.innerHTML = buildSubcatHTML(grouped, flat, "desk-", "col-md-6");
+    }
+
+    window.onParentSelectChange = function (sel) {
+        const val = sel.value;
+        var p = sel.id.indexOf("desk-") === 0 ? "desk-" : "";
+        const childContainer = document.getElementById(p + "child-select-container");
+        const childSelect = document.getElementById(p + "child-select");
+
+        if (!val) {
+            if (childContainer) childContainer.style.display = "none";
+            hideResultsPanel();
+            return;
+        }
+
+        if (val === "__all__") {
+            if (childContainer) childContainer.style.display = "none";
+            activeSubcategory = "Todas las categorías";
+            renderChips();
+            showCategoryResults(activeCategory);
+            return;
+        }
+
+        const cat = menuData.find(c => c.label === activeCategory);
+        const child = cat.children.find(function (ch) { return (ch.href || ch.label) === val; });
+
+        if (child && child.children && child.children.length) {
+            currentGroupHrefs = (child.children || []).map(function (sub) { return sub.href; });
+            if (child.href && currentGroupHrefs.indexOf(child.href) === -1) {
+                currentGroupHrefs.push(child.href);
+            }
+            childSelect.innerHTML =
+                `<option value="__all__">Todas las categorías</option>` +
+                child.children.filter(function (sub) {
+                    return sub.label !== child.label;
+                }).map(function (sub) {
+                    return `<option value="${escapeAttr(sub.href)}">${escapeHtml(sub.label)}</option>`;
+                }).join("");
+            childSelect.value = "__all__";
+            childContainer.style.display = "";
+            activeSubcategory = "Todas las categorías";
+            renderChips();
+            showAllGroupResults();
+        } else if (child && child.href) {
+            if (childContainer) childContainer.style.display = "none";
+            activeSubcategory = child.label;
+            renderChips();
+            showResults(child.href);
+        }
+    }
+
+    window.showAllGroupResults = function () {
+        var all = [];
+        var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+        currentGroupHrefs.forEach(function (href) {
+            (SIMULATED_RESULTS[href] || []).forEach(function (it) {
+                if (q && !it.title.toLowerCase().includes(q)) return;
+                if (activeYear && String(it.year) !== activeYear) return;
+                it._href = href;
+                all.push(it);
+            });
+        });
+        var panel = document.getElementById("results-panel");
+        activeResultsHref = "";
+        cachedResults = all;
+        currentPage = 1;
+        renderResultsPage();
+        panel.style.display = "block";
+    }
+
+    window.filterSubcategorias = function (q) {
+        const container = document.getElementById("subcategorias-container");
+        if (!container) return;
+        if (activeCategory === "__all__") {
+            container.style.display = "none";
+            return;
+        }
+        container.style.display = q ? "none" : "";
+    }
+
+    window.renderChips = function () {
+        const container = document.getElementById("filter-chips");
+        const chips = [];
+        if (activeYear) {
+            chips.push(`<span class="filter-chip" role="listitem">
+                    ${escapeHtml(activeYear)}
+                    <button onclick="removeYear()" aria-label="Quitar filtro">&times;</button>
+                </span>`);
+        }
+        if (searchQuery) {
+            chips.push(`<span class="filter-chip" role="listitem">
+                    "${escapeHtml(searchQuery)}"
+                    <button onclick="removeSearch()" aria-label="Quitar filtro">&times;</button>
+                </span>`);
+        }
+        if (activeSubcategory) {
+            chips.push(`<span class="filter-chip" role="listitem">
+                    ${escapeHtml(activeSubcategory)}
+                    <button onclick="removeSubcategory()" aria-label="Quitar filtro">&times;</button>
+                </span>`);
+        }
+        if (activeCategory) {
+            var catLabel = activeCategory === "__all__" ? "Todas las categorías" : activeCategory;
+            chips.push(`<span class="filter-chip" role="listitem">
+                    ${escapeHtml(catLabel)}
+                    <button onclick="removeCategoria()" aria-label="Quitar filtro">&times;</button>
+                </span>`);
+        }
+        container.innerHTML = chips.join("");
+    }
+
+    window.removeSearch = function () {
+        document.getElementById("search-presupuesto").value = "";
+        searchQuery = "";
+        renderChips();
+        filterSubcategorias("");
+        renderSubcategorias();
+        if (activeResultsHref) {
+            showResults(activeResultsHref);
+        } else if (activeCategory === "__all__") {
+            showAllCategoriesResults();
+        } else {
+            showCategoryResults(activeCategory);
+        }
+    }
+
+    window.removeSubcategory = function () {
+        activeSubcategory = "";
+        renderChips();
+        if (activeCategory === "__all__") {
+            showAllCategoriesResults();
+        } else {
+            showCategoryResults(activeCategory);
+        }
+    }
+
+    window.removeCategoria = function () {
+        activeSubcategory = "";
+        setCategoria("__all__");
+    }
+
+    window.removeYear = function () {
+        document.getElementById("filter-anio").value = "";
+        activeYear = "";
+        renderSubcategorias();
+        renderChips();
+        var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+        if (q) {
+            showGlobalResults(q);
+        } else if (activeCategory === "__all__") {
+            showAllCategoriesResults();
+        } else {
+            showCategoryResults(activeCategory);
+        }
+    }
+
+    window.getCategoryHrefs = function (label) {
+        var cat = menuData.find(function (c) { return c.label === label; });
+        if (!cat || !cat.children) return [];
+        var hrefs = [];
+        cat.children.forEach(function (ch) {
+            if (ch.children) {
+                ch.children.forEach(function (sub) { hrefs.push(sub.href); });
+            } else if (ch.href) {
+                hrefs.push(ch.href);
+            }
+        });
+        return hrefs;
+    }
+
+    window.showCategoryResults = function (label) {
+        var hrefs = getCategoryHrefs(label);
+        if (!hrefLabelMap) hrefLabelMap = buildHrefLabelMap();
+        var panel = document.getElementById("results-panel");
+        var list = document.getElementById("results-list");
+        var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+
+        if (!hrefs.length) {
+            list.innerHTML = '<div class="p-x-2 p-y-2 text-muted"><p class="margin-0">Seleccioná una subcategoría para ver los resultados</p></div>';
+            panel.style.display = "block";
+            activeResultsHref = "";
+            cachedResults = [];
+            return;
+        }
+
+        var all = [];
+        hrefs.forEach(function (href) {
+            (SIMULATED_RESULTS[href] || []).forEach(function (it) {
+                if (q && !it.title.toLowerCase().includes(q)) return;
+                if (activeYear && String(it.year) !== activeYear) return;
+                it._href = href;
+                all.push(it);
+            });
+        });
+
+        activeResultsHref = "";
+        cachedResults = all;
+        currentPage = 1;
+        renderResultsPage();
+        panel.style.display = "block";
+    }
+
+    window.showAllCategoriesResults = function () {
+        var allHrefs = [];
+        menuData.forEach(function (cat) {
+            if (cat.children) {
+                cat.children.forEach(function (ch) {
+                    if (ch.children) {
+                        ch.children.forEach(function (sub) { allHrefs.push(sub.href); });
+                    } else if (ch.href) {
+                        allHrefs.push(ch.href);
+                    }
+                });
+            }
+        });
+
+        var q = (document.getElementById("search-presupuesto").value || "").trim().toLowerCase();
+        var all = [];
+        allHrefs.forEach(function (href) {
+            (SIMULATED_RESULTS[href] || []).forEach(function (it) {
+                if (q && !it.title.toLowerCase().includes(q)) return;
+                if (activeYear && String(it.year) !== activeYear) return;
+                it._href = href;
+                all.push(it);
+            });
+        });
+
+        activeResultsHref = "";
+        cachedResults = all;
+        currentPage = 1;
+        renderResultsPage();
+        document.getElementById("results-panel").style.display = "block";
+    }
+
+    window.setCategoria = function (label) {
+        if (!label) return false;
+        activeCategory = label;
+        document.querySelectorAll("#sidebar-menu li").forEach(function (li) { li.classList.remove("active"); });
+        document.querySelectorAll("#sidebar-menu a[data-categoria]").forEach(function (a) {
+            a.classList.remove("active");
+            if (a.dataset.categoria === label) {
+                a.classList.add("active");
+                a.parentElement.classList.add("active");
+            }
+        });
+        setTimeout(function () {
+            document.getElementById("filter-chips").scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+        buildMenu();
+
+        const subcatContainer = document.getElementById("subcategorias-container");
+
+        if (label === "__all__") {
+            activeSubcategory = "";
+            subcatContainer.style.display = "none";
+            document.getElementById("subcategorias-desktop").innerHTML = "";
+            document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
+            renderChips();
+            showAllCategoriesResults();
+            return false;
+        }
+
+        activeSubcategory = "Todas las categorías";
+        subcatContainer.style.display = "";
+        renderSubcategorias();
+        renderChips();
+        showCategoryResults(label);
+        return false;
+    }
+
+    window.escapeHtml = function (str) {
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    window.escapeAttr = function (str) {
+        return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    var hrefLabelMap = null;
+
+    window.buildHrefLabelMap = function () {
+        var map = {};
+        menuData.forEach(function (cat) {
+            if (cat.children) {
+                cat.children.forEach(function (child) {
+                    if (child.children) {
+                        child.children.forEach(function (sub) {
+                            map[sub.href] = cat.label + " > " + child.label;
+                        });
+                    } else {
+                        map[child.href] = cat.label;
+                    }
+                });
+            } else {
+                map[cat.href] = cat.label;
+            }
+        });
+        return map;
+    }
+
+    window.globalSearch = function (q) {
+        if (!hrefLabelMap) hrefLabelMap = buildHrefLabelMap();
+        var all = [];
+        for (var href in SIMULATED_RESULTS) {
+            SIMULATED_RESULTS[href].forEach(function (it) {
+                if (q && !it.title.toLowerCase().includes(q)) return;
+                if (activeYear && String(it.year) !== activeYear) return;
+                it._href = href;
+                var label = hrefLabelMap[href] || "";
+                all.push({ item: it, group: label, href: href });
+            });
+        }
+        return all;
+    }
+
+    window.showGlobalResults = function (q) {
+        var results = globalSearch(q);
+        var panel = document.getElementById("results-panel");
+        var list = document.getElementById("results-list");
+
+        activeResultsHref = "";
+        cachedResults = results.map(function (r) {
+            return r.item;
+        });
+
+        currentPage = 1;
+        renderResultsPage();
+        panel.style.display = "block";
+    }
+
+    window.goToGlobalPage = function (p) {
+        goToPage(p);
+    }
+
+    window.renderPagination = function () {
+        const nav = document.getElementById("pagination-nav");
+        const ul = document.getElementById("pagination-list");
+        const totalPages = Math.ceil(cachedResults.length / ITEMS_POR_PAGINA);
+        if (totalPages <= 1) { nav.style.display = "none"; return; }
+        nav.style.display = "";
+        let html = '<li class="' + (currentPage === 1 ? "disabled" : "") + '"><a href="#" aria-label="Anterior" onclick="goToPage(' + (currentPage - 1) + '); return false;"><span aria-hidden="true">«</span></a></li>';
+        const delta = 2;
+        const range = [];
+        for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+            range.push(i);
+        }
+        if (range[0] > 1) {
+            html += '<li><a href="#" onclick="goToPage(1); return false;">1</a></li>';
+            if (range[0] > 2) html += '<li class="disabled"><a>…</a></li>';
+        }
+        range.forEach(function (p) {
+            html += '<li class="' + (p === currentPage ? "active" : "") + '"><a href="#" onclick="goToPage(' + p + '); return false;">' + p + (p === currentPage ? ' <span class="sr-only">(página actual)</span>' : "") + '</a></li>';
+        });
+        if (range[range.length - 1] < totalPages) {
+            if (range[range.length - 1] < totalPages - 1) html += '<li class="disabled"><a>…</a></li>';
+            html += '<li><a href="#" onclick="goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+        }
+        html += '<li class="' + (currentPage === totalPages ? "disabled" : "") + '"><a href="#" aria-label="Siguiente" onclick="goToPage(' + (currentPage + 1) + '); return false;"><span aria-hidden="true">»</span></a></li>';
+        ul.innerHTML = html;
+    }
+
+    window.changePageSize = function (size) {
+        if (size === 'todos') {
+            ITEMS_POR_PAGINA = 999999;
+        } else {
+            ITEMS_POR_PAGINA = parseInt(size, 10);
+        }
+        currentPage = 1;
+        renderResultsPage();
+        renderPagination();
+    }
+
+    const searchInput = document.getElementById("search-presupuesto");
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            var q = this.value.trim().toLowerCase();
+            searchQuery = q;
+            if (q) activeSubcategory = "";
+            renderChips();
+            if (q) {
+                filterSubcategorias(q);
+                showGlobalResults(q);
+            } else if (activeCategory === "__all__") {
+                filterSubcategorias("");
+                document.getElementById("results-title").textContent = activeYear ? activeYear + " · Todas las categorías" : "Todas las categorías";
+                showAllCategoriesResults();
+            } else if (activeResultsHref) {
+                filterSubcategorias("");
+                renderSubcategorias();
+                showResults(activeResultsHref);
+            } else {
+                filterSubcategorias("");
+                renderSubcategorias();
+                if (activeCategory === "__all__") {
+                    showAllCategoriesResults();
+                } else {
+                    showCategoryResults(activeCategory);
+                }
+            }
+        });
+    }
+
+    /* Mobile filter modal */
+    window.openMobileFilters = function () {
+        document.getElementById('mobileOverlay').classList.add('open');
+        document.getElementById('mobileFilterPanel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    window.closeMobileFilters = function () {
+        document.getElementById('mobileOverlay').classList.remove('open');
+        document.getElementById('mobileFilterPanel').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    window.resetAllMobile = function () {
+        document.getElementById("filter-anio").value = "2026";
+        activeYear = "2026";
+        activeSubcategory = "";
+        renderChips();
+        closeMobileFilters();
+        setCategoria("__all__");
+    }
+
+    const sidebarMenu = document.getElementById("sidebar-menu");
+    if (sidebarMenu) {
+        sidebarMenu.addEventListener("click", function (e) {
+            var a = e.target.closest("a");
+            if (a && a.dataset.categoria !== undefined) {
+                e.preventDefault();
+                setCategoria(a.dataset.categoria);
+            }
+        });
+    }
+
+    init();
+
+    /**
+     * Controla el status del componente &lt;details&gt;.
+     * Según el media query lo imprime abierto o cerrado.
+     */
+    window.panelMenu = function () {
+        const details = document.querySelectorAll(".device-panel-menu");
+        if (window.innerWidth >= 991) {
+            details.forEach((e) => e.setAttribute("open", true));
+        } else if (window.innerWidth < 991) {
+            details.forEach((e) => e.removeAttribute("open"));
+        }
+    };
+    document.addEventListener("DOMContentLoaded", panelMenu);
+    window.addEventListener('resize', panelMenu, true);
+</script>
